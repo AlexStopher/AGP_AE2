@@ -1,0 +1,20 @@
+﻿Input.obj : error LNK2019: unresolved external symbol _DirectInput8Create@20 referenced in function "public: long __thiscall Input::InitialiseInput(struct HWND__ *,struct HINSTANCE__ *)" (?InitialiseInput@Input@@QAEJPAUHWND__@@PAUHINSTANCE__@@@Z)
+Input.obj : error LNK2001: unresolved external symbol _IID_IDirectInput8A
+Input.obj : error LNK2001: unresolved external symbol _GUID_SysKeyboard
+Input.obj : error LNK2001: unresolved external symbol _c_dfDIKeyboard
+Main.obj : error LNK2019: unresolved external symbol _D3D11CreateDeviceAndSwapChain@48 referenced in function "long __cdecl InitialiseD3D(void)" (?InitialiseD3D@@YAJXZ)
+Main.obj : error LNK2019: unresolved external symbol _D3DX11CompileFromFileA@44 referenced in function "long __cdecl InitialiseGraphics(void)" (?InitialiseGraphics@@YAJXZ)
+Model.obj : error LNK2001: unresolved external symbol _D3DX11CompileFromFileA@44
+text2D.obj : error LNK2001: unresolved external symbol _D3DX11CompileFromFileA@44
+Main.obj : error LNK2019: unresolved external symbol _DXTraceA@20 referenced in function _WinMain@16
+objfilemodel.obj : error LNK2001: unresolved external symbol _DXTraceA@20
+Model.obj : error LNK2019: unresolved external symbol _D3DX11CreateShaderResourceViewFromFileA@24 referenced in function "public: int __thiscall Model::AddTexture(char *)" (?AddTexture@Model@@QAEHPAD@Z)
+text2D.obj : error LNK2001: unresolved external symbol _D3DX11CreateShaderResourceViewFromFileA@24
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3d11.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3dcompiler.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\dinput8.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\dxguid.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3dx11.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3dx9.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+d:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\dxerr.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+C:\Users\Angel\Desktop\Tutorial 13\Debug\Tutorial 01.exe : fatal error LNK1120: 8 unresolved externals

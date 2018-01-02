@@ -52,6 +52,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (msg.message != WM_QUIT)
 	{
+		
 
 
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -59,11 +60,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else
+		else if(p_Game->m_eGameState == eMainMenu)
 		{
+			p_Game->MainMenu();
+		}
+		else if(p_Game->m_eGameState == eInGame)
+		{
+			p_Game->GameLogic();
 			p_Game->RenderFrame();
 		}
+		else if (p_Game->m_eGameState == ePauseMenu)
+		{
+			//Pause menu
+			p_Game->MainMenu();
+		}
 
+		if (p_Game->m_eGameState == eEndGame)
+		{
+			PostQuitMessage(0);
+		}
 
 	}
 

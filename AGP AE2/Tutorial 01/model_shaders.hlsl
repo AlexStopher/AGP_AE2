@@ -4,6 +4,8 @@ cbuffer CB0
 	float4 AmbientLightColour; // 16
 	float4 DirectionalLightColour;
 	float4 DirectionalLightVector;
+	float4 PointLightPosition;
+	float4 PointLightColour;
 };
 
 Texture2D texture0;
@@ -30,7 +32,13 @@ VOut ModelVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 norm
 
 	diffuse_amount = saturate(diffuse_amount);
 
-	output.color = AmbientLightColour + (DirectionalLightColour * diffuse_amount);
+	//point light calc
+	float4 lightvector = PointLightPosition - position;
+	float point_amount = dot(normalize(lightvector), normal);
+
+	point_amount = saturate(point_amount);
+
+	output.color = AmbientLightColour + ((DirectionalLightColour * diffuse_amount) + (PointLightColour * point_amount));
 
 	return output;
 }

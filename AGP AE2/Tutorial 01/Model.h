@@ -20,21 +20,18 @@ private:
 	ID3D11SamplerState*			m_pSampler0;
 
 	XMVECTOR					m_DirectionalLightVector;
+	XMVECTOR					m_PointLightPosition;
+	XMVECTOR					m_PointLightColour;
 	
 
 	char*						m_ShaderFilename;
 
-	float						m_x, m_y, m_z;
-	float						m_xangle, m_yangle, m_zangle;
 	float						m_bounding_sphere_centre_x, m_bounding_sphere_centre_y, m_bounding_sphere_centre_z;
 	float						m_bounding_sphere_radius;
 
 	float						m_scale;
 
 	//private functions
-	
-
-	XMVECTOR GetBoundingSphereWorldSpacePosition();
 	
 
 public:
@@ -47,10 +44,12 @@ public:
 	int LoadObjModel(char* filename); //Load the Obj file data
 	void Draw(XMMATRIX*, XMMATRIX*, XMMATRIX*); //Draw the Model using the World View Perpsective Matrix
 	int AddTexture(char* filename); //Add a Texture to be loaded onto the Model
-	int AddLighting();
+	int AddLighting(); //Create a lighting system, to be added later
 
 	int LoadShader(char* filename);  //Loads a shader onto the model class
 	void SetDirectionalLight(float x, float y, float z, float w);
+	void SetPointLight(float x, float y, float z, float w);
+	void SetPointLightColour(float x, float y, float z, float w);
 
 	float GetBoundingSphereX();
 	float GetBoundingSphereY();
@@ -59,10 +58,6 @@ public:
 
 	void CalculateModelCentrePoint();
 	void CalculateBoundingSphereRadius();
-
-	void LookAtXYZ(float x, float y, float z);
-	void MoveForward(float distance); //Move in the Models forward vector by a float number
-	bool CheckCollision(Model* model);
 
 	float GetBoundingSphereRadius();
 	

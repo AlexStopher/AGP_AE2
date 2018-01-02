@@ -21,8 +21,10 @@ void MenuSystem::SetupMainMenu()
 
 void MenuSystem::MainMenuLoop(Input* player)
 {
-	m_pStart->AddText("ScaryZone", -0.6f, 0.6f, 0.2f);
-	m_pQuit->AddText("NotScaryZone", -0.6f, 0.5f, 0.2f);
+	player->ReadInputStates();
+
+	m_pStart->AddText("Start Game", -0.7f, 0.3f, 0.1f);
+	m_pQuit->AddText("Quit", -0.7f, 0.0f, 0.1f);
 
 	//if statements for the players input to move the position of the highlighted item
 	if (player->IsKeyPressed(DIK_W) && m_Position < 1)
@@ -37,12 +39,12 @@ void MenuSystem::MainMenuLoop(Input* player)
 	//if true then change the size of the box to show it is being highlighted	
 	if (IsHighlighted(eStartGame))
 	{
-	
+		m_pStart->AddText("Start Game", -0.7f, 0.3f, 0.15f);
 		
 	}
 	else if (IsHighlighted(eQuit))
 	{
-		
+		m_pQuit->AddText("Quit", -0.7f, 0.0f, 0.15f);
 	}
 
 
@@ -57,11 +59,49 @@ void MenuSystem::MainMenuLoop(Input* player)
 		m_Selection = false;
 	}
 
+	if (IsHighlighted(eStartGame) && m_Selection == true)
+	{
+		m_ePlayerSelection = eStartGame;
+
+	}
+	else if (IsHighlighted(eQuit) && m_Selection == true)
+	{
+		m_ePlayerSelection = eQuit;
+	}
 
 	m_pStart->RenderText();
 	m_pQuit->RenderText();
 
-	
+
+}
+
+void MenuSystem::PauseMenu(Input* player)
+{
+	player->ReadInputStates();
+
+	m_pStart->AddText("Start Game", -0.7f, 0.3f, 0.1f);
+	m_pQuit->AddText("Quit", -0.7f, 0.0f, 0.1f);
+
+	if (player->IsKeyPressed(DIK_W) && m_Position < 1)
+	{
+		m_Position++;
+	}
+	else if (player->IsKeyPressed(DIK_S) && m_Position > 0)
+	{
+		m_Position--;
+	}
+
+	if (IsHighlighted(eStartGame))
+	{
+		m_pStart->AddText("Start Game", -0.7f, 0.3f, 0.15f);
+
+	}
+	else if (IsHighlighted(eQuit))
+	{
+		m_pQuit->AddText("Quit", -0.7f, 0.0f, 0.15f);
+	}
+
+	m_pQuit->RenderText();
 }
 
 void MenuSystem::RenderMenu()

@@ -6,6 +6,8 @@ struct MODEL_CONSTANT_BUFFER
 	XMVECTOR AmbientLightColour = { 0.1f, 0.1f, 0.1f, 0.1f }; // 16
 	XMVECTOR DirectionalLightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
 	XMVECTOR DirectionalLightVector;
+	XMVECTOR PointLightPosition;
+	XMVECTOR PointLightColour;
 };
 
 Model::Model(ID3D11Device* D3DDevice, ID3D11DeviceContext* ImmediateContext)
@@ -13,13 +15,6 @@ Model::Model(ID3D11Device* D3DDevice, ID3D11DeviceContext* ImmediateContext)
 	m_pD3DDevice		= D3DDevice;
 	m_pImmediateContext = ImmediateContext;
 
-	m_x = 0.0f;
-	m_y = 0.0f;
-	m_z = 0.0f;
-
-	m_xangle = 0.0f;
-	m_yangle = 0.0f;
-	m_zangle = 0.0f;
 
 	m_scale = 1.0f;
 
@@ -79,6 +74,9 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 {
 	
 	XMMATRIX transpose = XMMatrixIdentity();
+	XMMATRIX inverse = XMMatrixIdentity();
+
+	XMVECTOR determinant;
 
 	MODEL_CONSTANT_BUFFER cb0_values;
 	
@@ -87,8 +85,15 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	cb0_values.WorldViewProjection = (*world) * (*view) * (*projection);
 
 	//Lighting code
+
 	cb0_values.DirectionalLightVector = m_DirectionalLightVector;
 
+
+	//point light
+	inverse = XMMatrixInverse(&determinant, *world);
+
+	cb0_values.PointLightPosition = XMVector2Transform(m_PointLightPosition, inverse);
+	cb0_values.PointLightColour = m_PointLightColour;
 
 	transpose = XMMatrixTranspose(*world);
 
@@ -305,56 +310,10 @@ void Model::CalculateBoundingSphereRadius()
 
 }
 
-XMVECTOR Model::GetBoundingSphereWorldSpacePosition()
-{
-
-	XMMATRIX world;
-	XMMATRIX transpose = XMMatrixIdentity();
-
-
-	world = XMMatrixRotationX(XMConvertToRadians(m_xangle));
-	world *= XMMatrixRotationY(XMConvertToRadians(m_yangle));
-	world *= XMMatrixRotationZ(XMConvertToRadians(m_zangle));
-	world *= XMMatrixScaling(m_scale, m_scale, m_scale);
-	world *= XMMatrixTranslation(m_x, m_y, m_z);
-
-
-	XMVECTOR offset;
-
-	offset = XMVectorSet(m_bounding_sphere_centre_x, m_bounding_sphere_centre_y, m_bounding_sphere_centre_z, 0);
-
-	offset = XMVector3Transform(offset, world);
-
-	return offset;
-}
 
 ObjFileModel* Model::GetModelObject()
 {
 	return m_pObject;
-}
-
-bool Model::CheckCollision(Model* model)
-{
-	if (model == this)
-		return false;
-	
-	XMVECTOR Object1 = this->GetBoundingSphereWorldSpacePosition();
-	XMVECTOR Object2 = model->GetBoundingSphereWorldSpacePosition();
-
-	float x1 = XMVectorGetX(Object1);
-	float x2 = XMVectorGetX(Object2);
-	float y1 = XMVectorGetY(Object1);
-	float y2 = XMVectorGetY(Object2);
-	float z1 = XMVectorGetZ(Object1);
-	float z2 = XMVectorGetZ(Object2);
-
-	float distanceSquared = (pow(x1 - x2, 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
-
-	if(distanceSquared < pow(this->GetBoundingSphereRadius() + model->GetBoundingSphereRadius(), 2))
-		return true; //collision
-
-
-	return false;
 }
 
 int Model::AddLighting()
@@ -367,20 +326,15 @@ void Model::SetDirectionalLight(float x, float y, float z, float w)
 	m_DirectionalLightVector = XMVectorSet(x, y, z, w);
 }
 
-void Model::LookAtXYZ(float x, float y, float z)
+void Model::SetPointLight(float x, float y, float z, float w)
 {
-	float dx = x - m_x;
-	float dz = z - m_z;
-	float dy = y - m_y;
-
-	//Get the hypotense of xz
-	float dxz = sqrt((dx * dx) + (dz*dz));
-
-	m_xangle = -atan2(dy, dxz) * (180 / XM_PI);
-	m_yangle = atan2(dx, dz) * (180 / XM_PI);
-
+	m_PointLightPosition = XMVectorSet(x, y, z, w);
 }
 
+void Model::SetPointLightColour(float x, float y, float z, float w)
+{
+	m_PointLightColour = XMVectorSet(x, y, z, w);
+}
 
 #pragma region Get/Set Functions
 

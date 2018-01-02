@@ -1,9 +1,5 @@
 #include "GameManager.h"
 
-#define SpawnRangeMinX = -10;
-#define SpawnRangeMaxX = 10;
-#define SpawnRangeMinZ = -10;
-#define SpawnRangeMaxX = 10;
 
 struct POS_COL_TEX_NORM_VERTEX
 {
@@ -13,22 +9,13 @@ struct POS_COL_TEX_NORM_VERTEX
 	XMFLOAT3 Normal;
 };
 
-struct CONSTANT_BUFFER0
-{
-	XMMATRIX WorldViewProjection;
-	XMVECTOR DirectionalLightVector;
-	XMVECTOR DirectionalLightColour;
-	XMVECTOR DirectionalLightVector2;
-	XMVECTOR DirectionalLightColour2;
-	XMVECTOR AmbientLightColour;
-	XMVECTOR PointLightPosition;
-	XMVECTOR PointLightColour;
-};
+
 
 GameManager::GameManager()
 {
 	m_pPlayerInput = new Input;
-	
+	m_IsGameRunning = true;
+	m_IsGamePaused = false;
 }
 
 
@@ -41,7 +28,7 @@ void GameManager::ShutdownD3D()
 	m_pMenu->~MenuSystem();
 	if (g_pSampler0) g_pSampler0->Release();
 	if (g_pTexture0) g_pTexture0->Release();
-	if (g_camera) g_camera->~Camera();
+	if (m_pCamera) m_pCamera->~Camera();
 	if (g_pZBuffer) g_pZBuffer->Release();
 	if (g_pVertexBuffer) g_pVertexBuffer->Release();
 	if (g_pInputLayout) g_pInputLayout->Release();
@@ -465,9 +452,13 @@ void GameManager::CreateLevel()
 	m_pPresentNode->SetXPos(-5.0f, RootNode);
 	m_pPresentNode->SetScale(0.1f, RootNode);
 
-	g_camera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
-
+	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
+	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
+	
+//	m_pThirdPerson->RotateRoll();
+	
 	m_pMenu = new MenuSystem(g_pD3DDevice, g_pImmediateContext);
+	m_pMenu->SetupMainMenu();
 }
 
 //Render the frame "Main" update loop for the buffer
@@ -475,75 +466,133 @@ void GameManager::RenderFrame(void)
 {
 	float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
 
-	//m_pMenu->SetupMainMenu();
 
-	/*while (true)
-	{
-		float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
-		g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
-		m_pPlayerInput->ReadInputStates();
-		m_pMenu->MainMenuLoop(m_pPlayerInput);
-		g_pSwapChain->Present(0, 0);
-	}
-*/
+	
+
+	//Clear the back buffer
+
+	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
+
+	//clear the Z Buffer
+	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
+	//Render here
+	m_2DText->AddText(std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
 
+
+	//Select primitive type
+	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+	XMMATRIX world, projection, view;
+
+
+	world = XMMatrixIdentity();
+
+	//Matrix that represents the field of view
+	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 640.0f / 480.0f, 0.0001f, 100.0f);
+
+	//Camera view point
+	view = m_pCamera->GetViewMatrix();
+
+	//Lighting for the world and objects
+
+
+	g_pModel->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+
+
+	g_pModel2->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+
+	m_pPresent->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pPresent->SetPointLight(0.0f, 10.0f, 0.0f, 0.0f);
+	m_pPresent->SetPointLightColour(0.0f, 1.0f, 0.0f, 0.0f);
+
+
+	m_pFloor->SetDirectionalLight(0.0f, 0.6f, -1.0f, 0.0f);
+
+	//Draw all of the nodes models
+	RootNode->Execute(&world, &view, &projection);
+
+	//Renders text after enabling the alpha channel
+	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
+	m_2DText->RenderText();
+	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
+
+	g_pSwapChain->Present(0, 0);
+}
+
+void GameManager::GameLogic()
+{
 	m_pPlayerInput->ReadInputStates();
 
 	XMMATRIX identity = XMMatrixIdentity();
 
 	RootNode->UpdateCollisionTree(&identity, 1.0f);
 
-	
-	
+
 	if (m_pPlayerInput->IsKeyPressed(DIK_W))
 	{
-		g_camera->Forward(0.001f);
+		m_pCamera->Forward(0.001f);
+		m_pThirdPerson->Forward(0.001f);
 
-		xyz Lookat = g_camera->GetLookAt();
+		xyz Lookat = m_pCamera->GetLookAt();
 
 		Lookat.x *= 0.001f;
 		Lookat.y *= 0.001f;
 		Lookat.z *= 0.001f;
-		
-		if (m_pPresentNode->CheckRaycastCollision(g_camera->GetCameraPos(), Lookat, false) == true)
+
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
 			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
 		}
 
-		if (RootNode->CheckRaycastCollision(g_camera->GetCameraPos(), Lookat, true) == true)
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
-
-			g_camera->Forward(-0.001f);
+			m_pThirdPerson->Forward(-0.001f);
+			m_pCamera->Forward(-0.001f);
 		}
+
+
 
 	}
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_A))
-		g_camera->Rotate(-0.04f);
+	{
+		m_pCamera->Rotate(-0.04f);
+		m_pThirdPerson->Rotate(-0.04f);
+	}
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_D))
-		g_camera->Rotate(0.04f);
+	{
+		m_pCamera->Rotate(0.04f);
+		m_pThirdPerson->Rotate(0.04f);
+	}
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_S))
 	{
-		g_camera->Forward(-0.001f);
+		m_pCamera->Forward(-0.001f);
+		m_pThirdPerson->Forward(-0.001f);
 
-		xyz Lookat = g_camera->GetLookAt();
+		xyz Lookat = m_pCamera->GetLookAt();
 
 		Lookat.x *= -0.001f;
 		Lookat.y *= -0.001f;
 		Lookat.z *= -0.001f;
 
-		if (RootNode->CheckRaycastCollision(g_camera->GetCameraPos(), Lookat, true) == true)
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
-			g_camera->Forward(0.001f);
+			m_pCamera->Forward(0.001f);
+			m_pThirdPerson->Forward(0.001f);
 		}
 
 	}
 
+	if (m_pPlayerInput->IsKeyPressed(DIK_ESCAPE))
+		m_eGameState = ePauseMenu;
+
+	//Debug code
 	if (m_pPlayerInput->IsKeyPressed(DIK_K))
 		node1->IncXPos(0.001f, RootNode);
 
@@ -559,61 +608,45 @@ void GameManager::RenderFrame(void)
 	if (m_pPlayerInput->IsKeyPressed(DIK_I))
 		m_pFloorNode->IncRotX(0.01f, RootNode);
 
-	//Clear the back buffer
+	xyz Lookat = m_pCamera->GetLookAt();
 
+	//node1->LookAtXYZ(g_camera->GetX(), g_camera->GetY(), g_camera->GetZ(), RootNode);
+	//node1->MoveForward(0.001f, RootNode);
+
+	Lookat.x *= 0.001f;
+	Lookat.y *= 0.001f;
+	Lookat.z *= 0.001f;
+
+	if (node1->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+	{
+		m_IsGameRunning = false;
+	}
+
+	
+}
+
+bool GameManager::GetIsRunning()
+{
+	return m_IsGameRunning;
+}
+
+void GameManager::MainMenu()
+{
+	float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
 	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
+	m_pPlayerInput->ReadInputStates();
 
-	//clear the Z Buffer
-	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-
-
-	//Render here
-	m_2DText->AddText(std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
-
-
-	//Select primitive type
-	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-	//Constant buffer values
-	CONSTANT_BUFFER0 cb0_values;
-	XMMATRIX transpose;
-
-	XMMATRIX world, projection, view, inverse;
-	XMVECTOR determinant;
-
-	world = XMMatrixIdentity();
-
-	//Matrix that represents the field of view
-	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 640.0f / 480.0f, 0.0001f, 100.0f);
-
-	//Camera view point
-	view = g_camera->GetViewMatrix();
-
-
-	//cb0_values.PointLightPosition = XMVector2Transform(g_point_light_position, inverse);
-
-	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer0, 0, 0, &cb0_values, 0, 0);
-
-	/*node1->LookAtXYZ(g_camera->GetX(), g_camera->GetY(), g_camera->GetZ(), RootNode);
-	node1->MoveForward(0.0008f, RootNode);*/
-
-
-	g_pModel->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-
-
-	g_pModel2->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-
-	m_pPresent->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-
-	m_pFloor->SetDirectionalLight(0.0f, 0.6f, -1.0f, 0.0f);
-
-	RootNode->Execute(&world, &view, &projection);
-
-	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
-	m_2DText->RenderText();
-	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
-
+	m_pMenu->MainMenuLoop(m_pPlayerInput);
 	g_pSwapChain->Present(0, 0);
+
+	if (m_pMenu->m_ePlayerSelection == eQuit && m_pMenu->GetSelection() == true)
+	{
+		m_eGameState = eEndGame;
+	}
+	else if (m_pMenu->m_ePlayerSelection == eStartGame && m_pMenu->GetSelection() == true)
+	{
+		m_eGameState = eInGame;
+	}
+
+
 }

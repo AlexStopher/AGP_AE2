@@ -18,6 +18,14 @@
 
 #include <xnamath.h>
 
+enum GameState
+{
+	eMainMenu,
+	eInGame,
+	ePauseMenu,
+	eEndGame
+};
+
 class GameManager
 {
 private:
@@ -25,11 +33,16 @@ private:
 	HINSTANCE				m_hInst;
 	HWND					m_hWnd;
 
+	
+
 	int		m_Score;
+	bool	m_IsGameRunning;
+	bool    m_IsGamePaused;
 
 	Text2D* m_2DText;
 
-	Camera* g_camera;
+	Camera* m_pCamera;
+	Camera* m_pThirdPerson;
 
 	Model*	  g_pModel;
 	Model*	  g_pModel2;
@@ -47,7 +60,7 @@ private:
 
 	SceneNode* cameraNode;
 
-	MenuSystem* m_pMenu;
+	
 
 	D3D_DRIVER_TYPE			g_driverType = D3D_DRIVER_TYPE_NULL;
 	D3D_FEATURE_LEVEL		g_featureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -73,6 +86,9 @@ private:
 
 public:
 
+	GameState m_eGameState;
+
+	MenuSystem* m_pMenu;
 	Input*					m_pPlayerInput;
 
 	GameManager();
@@ -89,8 +105,10 @@ public:
 
 	HINSTANCE GetHInstance();
 	HWND GetHWnd();
+	bool GetIsRunning();
 
-	//renderloop
+	void GameLogic();
+	void MainMenu();
 	//gameloop
 	//playerloop
 	//logicloop

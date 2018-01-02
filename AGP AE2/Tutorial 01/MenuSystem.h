@@ -6,9 +6,11 @@
 #include "text2D.h"
 
 enum BUTTONS
-{
+{	
+	eQuit,
 	eStartGame,
-	eQuit
+	eNeutral
+
 };
 
 class MenuSystem
@@ -27,14 +29,17 @@ private:
 
 public:
 
+	BUTTONS		m_ePlayerSelection;
+
 	MenuSystem(ID3D11Device* D3DDevice, ID3D11DeviceContext* ImmediateContext);
 	~MenuSystem();
 
 	//Initializes the menu
 	void SetupMainMenu();
 
-	void MainMenuLoop(Input* player);
-	void RenderMenu();
+	void MainMenuLoop(Input* player); // Menu at the beginning of the game
+	void PauseMenu(Input* player); // Pause menu for in game
+	void RenderMenu(); 
 	bool IsHighlighted(BUTTONS Button);
 	bool GetSelection();
 

@@ -404,6 +404,8 @@ bool SceneNode::CheckRaycastCollision(xyz rayPosition, xyz rayDirection, bool ch
 	return false;
 }
 
+
+
 //get methods
 
 bool SceneNode::GetObjectCollideState()
@@ -755,4 +757,29 @@ void SceneNode::LookAtXYZ(float x, float y, float z, SceneNode* rootNode)
 	m_xangle = -atan2(dy, dxz) * (180 / XM_PI);
 	m_yangle = atan2(dx, dz) * (180 / XM_PI);
 
+}
+
+bool SceneNode::MoveForward(float distance, SceneNode* rootNode)
+{
+	float oldx = m_x;
+	float oldy = m_y;
+	float oldz = m_z;
+	
+	m_x += sin(m_yangle * (XM_PI / 180)) * distance * cos(m_xangle * (XM_PI / 180));
+	m_y += -sin(m_xangle * (XM_PI / 180)) * distance;
+	m_z += cos(m_yangle * (XM_PI / 180)) * distance * cos(m_xangle * (XM_PI / 180));
+
+	XMMATRIX identity = XMMatrixIdentity();
+	rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+	if (CheckCollision(rootNode) == true)
+	{
+		m_x = oldx;
+		m_y = oldy;
+		m_z = oldz;
+
+		return true;
+	}
+
+	return false;
 }

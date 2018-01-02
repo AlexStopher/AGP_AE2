@@ -17,7 +17,7 @@ private:
 
 	float						m_worldCentreX, m_worldCentreY, m_worldCentreZ, m_worldScale;
 
-	bool						m_canCollide, m_isVisable;
+	bool						m_canCollide, m_isVisable, m_hasCollided;
 
 	XMMATRIX					m_localWorldMatrix;
 
@@ -71,5 +71,6 @@ public:
 	void AddModel(Model* model);
 
 	void LookAtXYZ(float, float, float, SceneNode* rootNode);
+	bool MoveForward(float distance, SceneNode* root);
 };
 

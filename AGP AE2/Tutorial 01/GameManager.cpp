@@ -1,5 +1,10 @@
 #include "GameManager.h"
 
+#define SpawnRangeMinX = -10;
+#define SpawnRangeMaxX = 10;
+#define SpawnRangeMinZ = -10;
+#define SpawnRangeMaxX = 10;
+
 struct POS_COL_TEX_NORM_VERTEX
 {
 	XMFLOAT3 Pos;
@@ -23,6 +28,7 @@ struct CONSTANT_BUFFER0
 GameManager::GameManager()
 {
 	m_pPlayerInput = new Input;
+	
 }
 
 
@@ -30,6 +36,27 @@ GameManager::~GameManager()
 {
 }
 
+void GameManager::ShutdownD3D()
+{
+	m_pMenu->~MenuSystem();
+	if (g_pSampler0) g_pSampler0->Release();
+	if (g_pTexture0) g_pTexture0->Release();
+	if (g_camera) g_camera->~Camera();
+	if (g_pZBuffer) g_pZBuffer->Release();
+	if (g_pVertexBuffer) g_pVertexBuffer->Release();
+	if (g_pInputLayout) g_pInputLayout->Release();
+	if (g_pVertexShader) g_pVertexShader->Release();
+	if (g_pPixelShader) g_pPixelShader->Release();
+	if (g_pConstantBuffer0) g_pConstantBuffer0->Release();
+
+	if (m_pPlayerInput) m_pPlayerInput->~Input();
+
+	if (g_pBackBufferRTView) g_pBackBufferRTView->Release();
+	if (g_pSwapChain) g_pSwapChain->Release();
+	if (g_pImmediateContext) g_pImmediateContext->Release();
+	if (g_pD3DDevice) g_pD3DDevice->Release();
+
+}
 HINSTANCE GameManager::GetHInstance()
 {
 	return m_hInst;
@@ -249,69 +276,11 @@ HRESULT GameManager::InitialiseD3D()
 	return S_OK;
 }
 
-
-void GameManager::ShutdownD3D()
-{
-	//if (g_pModel) g_pModel->~Model();
-	if (g_pSampler0) g_pSampler0->Release();
-	if (g_pTexture0) g_pTexture0->Release();
-	if (g_camera) g_camera->~Camera();
-	if (g_pZBuffer) g_pZBuffer->Release();
-	if (g_pVertexBuffer) g_pVertexBuffer->Release();
-	if (g_pInputLayout) g_pInputLayout->Release();
-	if (g_pVertexShader) g_pVertexShader->Release();
-	if (g_pPixelShader) g_pPixelShader->Release();
-	if (g_pConstantBuffer0) g_pConstantBuffer0->Release();
-
-	if (m_pPlayerInput) m_pPlayerInput->~Input();
-
-	if (g_pBackBufferRTView) g_pBackBufferRTView->Release();
-	if (g_pSwapChain) g_pSwapChain->Release();
-	if (g_pImmediateContext) g_pImmediateContext->Release();
-	if (g_pD3DDevice) g_pD3DDevice->Release();
-
-}
-
 HRESULT GameManager::InitialiseGraphics()
 {
 	HRESULT hr = S_OK;
 
-	g_pModel = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel->LoadObjModel("assets/Wall.obj");
-	g_pModel->LoadShader("model_shaders.hlsl");
-	g_pModel->AddTexture("assets/texture.bmp");
-
-	g_pModel2 = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel2->LoadObjModel("assets/cube.obj");
-	g_pModel2->LoadShader("model_shaders.hlsl");
-	g_pModel2->AddTexture("assets/texture.bmp");
-
-	g_pModel3 = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel3->LoadObjModel("assets/cube.obj");
-	g_pModel3->LoadShader("model_shaders.hlsl");
-	g_pModel3->AddTexture("assets/texture.bmp");
-
-	RootNode = new SceneNode();
-	node1 = new SceneNode();
-	node2 = new SceneNode();
-	cameraNode = new SceneNode();
-
-	RootNode->AddChildNode(node1);
-	RootNode->AddChildNode(node2);
-	//RootNode->AddChildNode(cameraNode);
-
-	node1->AddModel(g_pModel);
-	node2->AddModel(g_pModel2);
-
-	node1->SetZPos(20.0f, RootNode);
-	node2->SetZPos(10.0f, RootNode);
-	node2->SetXPos(3.0f, RootNode);
-
-	node1->SetRotationY(180, RootNode);
-	node1->SetScale(2, RootNode);
-	//cameraNode->AddModel(g_pModel3);
-
-	//cameraNode->SetCanObjectCollide(false);
+	CreateLevel();
 
 	//Define vertices of a triangle
 	POS_COL_TEX_NORM_VERTEX vertices[] =
@@ -417,7 +386,7 @@ HRESULT GameManager::InitialiseGraphics()
 
 	D3D11_INPUT_ELEMENT_DESC iedesc[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
@@ -432,10 +401,73 @@ HRESULT GameManager::InitialiseGraphics()
 
 	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
 
-	g_camera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
+
 
 	return S_OK;
 
+}
+
+void GameManager::CreateLevel()
+{
+	g_pModel = new Model(g_pD3DDevice, g_pImmediateContext);
+	g_pModel->LoadObjModel("assets/cube.obj");
+	g_pModel->LoadShader("model_shaders.hlsl");
+	g_pModel->AddTexture("assets/skull.png");
+
+	g_pModel2 = new Model(g_pD3DDevice, g_pImmediateContext);
+	g_pModel2->LoadObjModel("assets/cube.obj");
+	g_pModel2->LoadShader("model_shaders.hlsl");
+	g_pModel2->AddTexture("assets/texture.bmp");
+
+	g_pModel3 = new Model(g_pD3DDevice, g_pImmediateContext);
+	g_pModel3->LoadObjModel("assets/cube.obj");
+	g_pModel3->LoadShader("model_shaders.hlsl");
+	g_pModel3->AddTexture("assets/texture.bmp");
+
+	m_pPresent = new Model(g_pD3DDevice, g_pImmediateContext);
+	m_pPresent->LoadObjModel("assets/cube.obj");
+	m_pPresent->LoadShader("model_shaders.hlsl");
+	m_pPresent->AddTexture("assets/present.bmp");
+
+	m_pFloor = new Model(g_pD3DDevice, g_pImmediateContext);
+	m_pFloor->LoadObjModel("assets/wall.obj");
+	m_pFloor->LoadShader("model_shaders.hlsl");
+	m_pFloor->AddTexture("assets/texture.bmp");
+
+	RootNode = new SceneNode();
+	node1 = new SceneNode();
+	node2 = new SceneNode();
+	cameraNode = new SceneNode();
+	m_pPresentNode = new SceneNode();
+	m_pFloorNode = new SceneNode();
+
+	RootNode->AddChildNode(node1);
+	RootNode->AddChildNode(node2);
+	RootNode->AddChildNode(m_pPresentNode);
+	RootNode->AddChildNode(m_pFloorNode);
+	
+	m_pFloorNode->AddModel(m_pFloor);
+	m_pFloorNode->SetRotationX(-90, RootNode);
+	m_pFloorNode->SetYPos(-51, RootNode);
+	m_pFloorNode->SetScale(50, RootNode);
+	m_pFloorNode->SetCanObjectCollide(false);
+
+	node1->AddModel(g_pModel);
+	node2->AddModel(g_pModel2);
+	m_pPresentNode->AddModel(m_pPresent);
+
+	node1->SetZPos(20.0f, RootNode);
+	node2->SetZPos(10.0f, RootNode);
+	node2->SetXPos(3.0f, RootNode);
+
+
+	m_pPresentNode->SetZPos(10.0f, RootNode);
+	m_pPresentNode->SetXPos(-5.0f, RootNode);
+	m_pPresentNode->SetScale(0.1f, RootNode);
+
+	g_camera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
+
+	m_pMenu = new MenuSystem(g_pD3DDevice, g_pImmediateContext);
 }
 
 //Render the frame "Main" update loop for the buffer
@@ -443,13 +475,28 @@ void GameManager::RenderFrame(void)
 {
 	float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
 
+	//m_pMenu->SetupMainMenu();
+
+	/*while (true)
+	{
+		float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
+		g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
+		m_pPlayerInput->ReadInputStates();
+		m_pMenu->MainMenuLoop(m_pPlayerInput);
+		g_pSwapChain->Present(0, 0);
+	}
+*/
+
+
+
 	m_pPlayerInput->ReadInputStates();
 
 	XMMATRIX identity = XMMatrixIdentity();
 
 	RootNode->UpdateCollisionTree(&identity, 1.0f);
 
-
+	
+	
 	if (m_pPlayerInput->IsKeyPressed(DIK_W))
 	{
 		g_camera->Forward(0.001f);
@@ -459,6 +506,12 @@ void GameManager::RenderFrame(void)
 		Lookat.x *= 0.001f;
 		Lookat.y *= 0.001f;
 		Lookat.z *= 0.001f;
+		
+		if (m_pPresentNode->CheckRaycastCollision(g_camera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+		}
 
 		if (RootNode->CheckRaycastCollision(g_camera->GetCameraPos(), Lookat, true) == true)
 		{
@@ -504,7 +557,7 @@ void GameManager::RenderFrame(void)
 		node1->IncZPos(0.001f, RootNode);
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_I))
-		node1->IncRotY(0.01f, RootNode);
+		m_pFloorNode->IncRotX(0.01f, RootNode);
 
 	//Clear the back buffer
 
@@ -513,8 +566,10 @@ void GameManager::RenderFrame(void)
 	//clear the Z Buffer
 	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+
+
 	//Render here
-	m_2DText->AddText("ScaryZone", -1.0f, +1.0f, 0.1f);
+	m_2DText->AddText(std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
 
 
 	//Select primitive type
@@ -541,6 +596,8 @@ void GameManager::RenderFrame(void)
 
 	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer0, 0, 0, &cb0_values, 0, 0);
 
+	/*node1->LookAtXYZ(g_camera->GetX(), g_camera->GetY(), g_camera->GetZ(), RootNode);
+	node1->MoveForward(0.0008f, RootNode);*/
 
 
 	g_pModel->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
@@ -548,6 +605,9 @@ void GameManager::RenderFrame(void)
 
 	g_pModel2->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
 
+	m_pPresent->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+
+	m_pFloor->SetDirectionalLight(0.0f, 0.6f, -1.0f, 0.0f);
 
 	RootNode->Execute(&world, &view, &projection);
 

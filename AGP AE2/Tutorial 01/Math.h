@@ -1,11 +1,13 @@
 #pragma once
 
 #include <math.h>
+#include <stdlib.h>
+#include <time.h>
 
 struct xyz
 {
 	float x, y, z;
-
+	
 	xyz operator+(const xyz& b)
 	{
 		xyz temp;
@@ -16,7 +18,7 @@ struct xyz
 
 		return temp;
 	}
-
+	
 	xyz operator-(const xyz& b)
 	{
 		xyz temp;
@@ -53,6 +55,8 @@ public:
 
 	Math();
 	~Math();
+
+	static float GetRandomNumber(int randomMax, int randomMin);
 
 	static float DotProduct(xyz* u, xyz* v); //returns the dot product of two vectors
 	static xyz CrossProduct(xyz* u, xyz* v);

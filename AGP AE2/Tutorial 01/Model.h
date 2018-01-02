@@ -28,6 +28,7 @@ private:
 	float						m_xangle, m_yangle, m_zangle;
 	float						m_bounding_sphere_centre_x, m_bounding_sphere_centre_y, m_bounding_sphere_centre_z;
 	float						m_bounding_sphere_radius;
+
 	float						m_scale;
 
 	//private functions
@@ -38,6 +39,7 @@ private:
 
 public:
 
+	
 
 	Model(ID3D11Device*, ID3D11DeviceContext*);
 	~Model();
@@ -54,7 +56,6 @@ public:
 	float GetBoundingSphereY();
 	float GetBoundingSphereZ();
 	ObjFileModel* GetModelObject();
-
 
 	void CalculateModelCentrePoint();
 	void CalculateBoundingSphereRadius();

@@ -94,9 +94,8 @@ d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathvector.i
 d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathmisc.inl(518): warning C4838: conversion from 'unsigned int' to 'INT' requires a narrowing conversion
 d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathmisc.inl(519): warning C4838: conversion from 'unsigned int' to 'INT' requires a narrowing conversion
   d:\program files (x86)\microsoft directx sdk (june 2010)\include\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-c:\users\angel\desktop\agp ae2\tutorial 01\gamemanager.cpp(117): warning C4552: '!=': operator has no effect; expected operator with side-effect
-c:\users\angel\desktop\agp ae2\tutorial 01\gamemanager.cpp(222): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
-c:\users\angel\desktop\agp ae2\tutorial 01\gamemanager.cpp(223): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
-c:\users\angel\desktop\agp ae2\tutorial 01\gamemanager.cpp(570): warning C4101: 'determinant': unreferenced local variable
-dxerr.lib(dxerra.obj) : error LNK2019: unresolved external symbol _vsnprintf referenced in function "long __cdecl StringVPrintfWorkerA(char *,unsigned __int64,unsigned __int64 *,char const *,char *)" (?StringVPrintfWorkerA@@YAJPEAD_KPEA_KPEBD0@Z)
-C:\Users\Angel\Desktop\AGP AE2\x64\Debug\Tutorial 01.exe : fatal error LNK1120: 1 unresolved externals
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(145): warning C4552: '!=': operator has no effect; expected operator with side-effect
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(250): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(251): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(584): warning C4101: 'determinant': unreferenced local variable
+  Tutorial 01.vcxproj -> C:\Users\Angel\Documents\GitHub\AGP_AE2\AGP AE2\x64\Debug\Tutorial 01.exe

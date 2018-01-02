@@ -4,11 +4,14 @@
 #include <d3dx11.h>
 #include <dxerr.h>
 #include <stdio.h>
+#include <iostream>
 #include "Camera.h"
 #include "text2D.h"
 #include "Model.h"
 #include "Input.h"
 #include "SceneNode.h"
+#include "MenuSystem.h"
+#include "Math.h"
 
 #define _XM_NO_INTRINSICS
 #define XM_NO_ALIGNMENT
@@ -22,18 +25,29 @@ private:
 	HINSTANCE				m_hInst;
 	HWND					m_hWnd;
 
+	int		m_Score;
+
 	Text2D* m_2DText;
+
 	Camera* g_camera;
 
 	Model*	  g_pModel;
 	Model*	  g_pModel2;
 	Model*	  g_pModel3;
+	Model*	  m_pPlayerModel;
+	Model*	  m_pPresent;
+	Model*	  m_pFloor;
 
 	SceneNode* RootNode;
 	SceneNode* node1;
 	SceneNode* node2;
+	SceneNode* m_pPlayerNode;
+	SceneNode* m_pPresentNode;
+	SceneNode* m_pFloorNode;
 
 	SceneNode* cameraNode;
+
+	MenuSystem* m_pMenu;
 
 	D3D_DRIVER_TYPE			g_driverType = D3D_DRIVER_TYPE_NULL;
 	D3D_FEATURE_LEVEL		g_featureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -64,6 +78,7 @@ public:
 	GameManager();
 	~GameManager();
 
+	void CreateLevel();
 
 	HRESULT InitaliseWindow(HINSTANCE hInstance, int nCmdShow);
 	HRESULT InitialiseD3D();

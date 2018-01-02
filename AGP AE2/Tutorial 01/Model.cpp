@@ -300,6 +300,7 @@ void Model::CalculateBoundingSphereRadius()
 		}
 	}
 
+	//BUG HERE
 	m_bounding_sphere_radius = distance;
 
 }
@@ -380,18 +381,12 @@ void Model::LookAtXYZ(float x, float y, float z)
 
 }
 
-void Model::MoveForward(float distance)
-{
-	m_x += sin(m_yangle * (XM_PI / 180)) * distance * cos(m_xangle * (XM_PI / 180));
-	m_y += -sin(m_xangle * (XM_PI / 180)) * distance;
-	m_z += cos(m_yangle * (XM_PI / 180)) * distance * cos(m_xangle * (XM_PI / 180));
-}
 
 #pragma region Get/Set Functions
 
 float Model::GetBoundingSphereRadius()
 {
-	return (m_bounding_sphere_radius);
+	return m_bounding_sphere_radius;
 }
 
 float Model::GetBoundingSphereX()

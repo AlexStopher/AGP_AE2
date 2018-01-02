@@ -31,8 +31,7 @@ private:
 	float						m_scale;
 
 	//private functions
-	void CalculateModelCentrePoint();
-	void CalculateBoundingSphereRadius();
+	
 
 	XMVECTOR GetBoundingSphereWorldSpacePosition();
 	
@@ -55,6 +54,10 @@ public:
 	float GetBoundingSphereY();
 	float GetBoundingSphereZ();
 	ObjFileModel* GetModelObject();
+
+
+	void CalculateModelCentrePoint();
+	void CalculateBoundingSphereRadius();
 
 	void LookAtXYZ(float x, float y, float z);
 	void MoveForward(float distance); //Move in the Models forward vector by a float number

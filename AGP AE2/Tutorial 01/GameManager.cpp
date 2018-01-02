@@ -227,7 +227,24 @@ HRESULT GameManager::InitialiseD3D()
 
 	g_pImmediateContext->RSSetViewports(1, &viewport);
 
-	m_2DText = new Text2D("assets/font1.bmp", g_pD3DDevice, g_pImmediateContext);
+	m_2DText = new Text2D("assets/font1.png", g_pD3DDevice, g_pImmediateContext);
+
+	//Creation of the Alpha Blend description
+	D3D11_BLEND_DESC b;
+	ZeroMemory(&b, sizeof(b));
+
+	b.RenderTarget[0].BlendEnable = TRUE;
+	b.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	b.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	b.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	b.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	b.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	b.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	b.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	b.IndependentBlendEnable = FALSE;
+	b.AlphaToCoverageEnable = FALSE;
+
+	g_pD3DDevice->CreateBlendState(&b, &m_pBlendAlphaEnable);
 
 	return S_OK;
 }
@@ -260,7 +277,7 @@ HRESULT GameManager::InitialiseGraphics()
 	HRESULT hr = S_OK;
 
 	g_pModel = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel->LoadObjModel("assets/cube.obj");
+	g_pModel->LoadObjModel("assets/Wall.obj");
 	g_pModel->LoadShader("model_shaders.hlsl");
 	g_pModel->AddTexture("assets/texture.bmp");
 
@@ -290,6 +307,8 @@ HRESULT GameManager::InitialiseGraphics()
 	node2->SetZPos(10.0f, RootNode);
 	node2->SetXPos(3.0f, RootNode);
 
+	node1->SetRotationY(180, RootNode);
+	node1->SetScale(2, RootNode);
 	//cameraNode->AddModel(g_pModel3);
 
 	//cameraNode->SetCanObjectCollide(false);
@@ -297,18 +316,7 @@ HRESULT GameManager::InitialiseGraphics()
 	//Define vertices of a triangle
 	POS_COL_TEX_NORM_VERTEX vertices[] =
 	{
-
 		//Cube
-
-		//Back face
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),		 XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f,0.0f,1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),	 XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,0.0f,1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),	 XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,0.0f,1.0f) },
-
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),		 XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,0.0f,1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),	 XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,0.0f,1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),		 XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f,0.0f,1.0f) },
-
 
 		//front face
 		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f),	 XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
@@ -318,44 +326,6 @@ HRESULT GameManager::InitialiseGraphics()
 		{ XMFLOAT3(1.0f,1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
 		{ XMFLOAT3(1.0f,-1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
 		{ XMFLOAT3(-1.0f,-1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
-
-		//left face
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(-1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f),XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(-1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f),XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(-1.0f,0.0f,0.0f) },
-
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f),XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(-1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f),XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(-1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f),XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(-1.0f,0.0f,0.0f) },
-
-
-		//Right face
-		{ XMFLOAT3(1.0f,1.0f, -1.0f),XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) , XMFLOAT3(1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(1.0f,1.0f,1.0f),XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(1.0f,-1.0f,-1.0f),XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(1.0f,0.0f,0.0f) },
-
-		{ XMFLOAT3(1.0f, -1.0f,-1.0f),XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f),XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(1.0f,0.0f,0.0f) },
-		{ XMFLOAT3(1.0f,-1.0f,1.0f),XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(1.0f,0.0f,0.0f) },
-
-		//Bottom face
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f),XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f,-1.0f,0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f),XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,-1.0f,0.0f) },
-		{ XMFLOAT3(-1.0f,-1.0f,-1.0f),XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,-1.0f,0.0f) },
-
-		{ XMFLOAT3(1.0f,-1.0f, 1.0f),XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,-1.0f,0.0f) },
-		{ XMFLOAT3(-1.0f,-1.0f,1.0f),XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f,-1.0f,0.0f) },
-		{ XMFLOAT3(-1.0f,-1.0f,-1.0f),XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,-1.0f,0.0f) },
-
-
-		//Top face
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,1.0f,0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f,1.0f),XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f,1.0f,0.0f) },
-		{ XMFLOAT3(-1.0f,1.0f,-1.0f),XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,1.0f,0.0f) },
-
-		{ XMFLOAT3(1.0f,1.0f,1.0f),XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f,1.0f,0.0f) },
-		{ XMFLOAT3(1.0f,1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,1.0f,0.0f) },
-		{ XMFLOAT3(-1.0f,1.0f,-1.0f),XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,1.0f,0.0f) }
 
 	};
 
@@ -463,10 +433,6 @@ HRESULT GameManager::InitialiseGraphics()
 	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
 
 	g_camera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
-	//node2->SetCanObjectCollide(false);
-	//node2->SetIsObjectDrawn(false);
-	//node2->SetScale(3, RootNode);
-
 
 	return S_OK;
 
@@ -488,8 +454,6 @@ void GameManager::RenderFrame(void)
 	{
 		g_camera->Forward(0.001f);
 
-
-
 		xyz Lookat = g_camera->GetLookAt();
 
 		Lookat.x *= 0.001f;
@@ -510,28 +474,22 @@ void GameManager::RenderFrame(void)
 	if (m_pPlayerInput->IsKeyPressed(DIK_D))
 		g_camera->Rotate(0.04f);
 
-	//if (PlayerInput->IsKeyPressed(DIK_S))
-	//{
-	//	g_camera->Forward(-0.001f);
+	if (m_pPlayerInput->IsKeyPressed(DIK_S))
+	{
+		g_camera->Forward(-0.001f);
 
-	///*	cameraNode->SetXPos(g_camera->GetX());
-	//	cameraNode->SetYPos(g_camera->GetY());
-	//	cameraNode->SetZPos(g_camera->GetZ());*/
+		xyz Lookat = g_camera->GetLookAt();
 
-	//	XMMATRIX identity = XMMatrixIdentity();
-	//	RootNode->UpdateCollisionTree(&identity, 1.0f);
+		Lookat.x *= -0.001f;
+		Lookat.y *= -0.001f;
+		Lookat.z *= -0.001f;
 
+		if (RootNode->CheckRaycastCollision(g_camera->GetCameraPos(), Lookat, true) == true)
+		{
+			g_camera->Forward(0.001f);
+		}
 
-	//	if (cameraNode->CheckCollision(RootNode) == true)
-	//	{
-	//		g_camera->Forward(0.001f);
-
-	//		/*cameraNode->SetXPos(g_camera->GetX());
-	//		cameraNode->SetYPos(g_camera->GetY());
-	//		cameraNode->SetZPos(g_camera->GetZ());*/
-	//	}
-
-	//}
+	}
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_K))
 		node1->IncXPos(0.001f, RootNode);
@@ -593,8 +551,9 @@ void GameManager::RenderFrame(void)
 
 	RootNode->Execute(&world, &view, &projection);
 
+	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
 	m_2DText->RenderText();
-
+	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
 
 	g_pSwapChain->Present(0, 0);
 }

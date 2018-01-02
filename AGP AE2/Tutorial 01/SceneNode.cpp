@@ -605,6 +605,8 @@ bool SceneNode::SetScale(float scale, SceneNode* rootNode)
 		return true;
 	}
 
+	m_pModel->CalculateBoundingSphereRadius();
+
 	return false;
 }
 

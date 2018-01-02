@@ -54,6 +54,9 @@ private:
 	ID3D11ShaderResourceView* g_pTexture0; // Texture pointer for images to be rendered onto objects
 	ID3D11SamplerState*		  g_pSampler0; //Creates a Sampler state for the pixel shader
 
+	ID3D11BlendState*		  m_pBlendAlphaEnable;
+	ID3D11BlendState*		  m_pBlendAlphaDisable;
+
 public:
 
 	Input*					m_pPlayerInput;

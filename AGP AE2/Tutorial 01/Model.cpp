@@ -391,7 +391,7 @@ void Model::MoveForward(float distance)
 
 float Model::GetBoundingSphereRadius()
 {
-	return (m_bounding_sphere_radius * m_scale);
+	return (m_bounding_sphere_radius);
 }
 
 float Model::GetBoundingSphereX()

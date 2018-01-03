@@ -53,10 +53,13 @@
     <FxCompile Include="text2D_shaders.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="shaders.hlsl">
+    <FxCompile Include="model_shaders.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="model_shaders.hlsl">
+    <FxCompile Include="SkyBox_Shader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="reflect_shader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>

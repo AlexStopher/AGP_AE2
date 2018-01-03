@@ -25,9 +25,12 @@ GameManager::~GameManager()
 
 void GameManager::ShutdownD3D()
 {
+
+	m_pRasterSolid->Release();
+	m_pRasterSkyBox->Release();
+    m_pDepthWriteSolid->Release();
+	m_pDepthWriteSkyBox->Release();
 	m_pMenu->~MenuSystem();
-	if (g_pSampler0) g_pSampler0->Release();
-	if (g_pTexture0) g_pTexture0->Release();
 	if (m_pCamera) m_pCamera->~Camera();
 	if (g_pZBuffer) g_pZBuffer->Release();
 	if (g_pVertexBuffer) g_pVertexBuffer->Release();
@@ -260,6 +263,33 @@ HRESULT GameManager::InitialiseD3D()
 
 	g_pD3DDevice->CreateBlendState(&b, &m_pBlendAlphaEnable);
 
+	//Rasteriser for creating the skybox and normal states
+	D3D11_RASTERIZER_DESC d;
+	ZeroMemory(&d, sizeof(d));
+	d.FillMode = D3D11_FILL_SOLID;
+	d.CullMode = D3D11_CULL_NONE;
+	d.DepthClipEnable = false;
+	d.FrontCounterClockwise = false;
+	d.MultisampleEnable = false;
+
+	hr = g_pD3DDevice->CreateRasterizerState(&d, &m_pRasterSolid);
+	d.CullMode = D3D11_CULL_FRONT;
+	hr = g_pD3DDevice->CreateRasterizerState(&d, &m_pRasterSkyBox);
+
+	//Depth Stencil to allow the skybox to not be drawn over objects
+	D3D11_DEPTH_STENCIL_DESC ds;
+	ZeroMemory(&ds, sizeof(ds));
+	ds.StencilEnable = false;
+	ds.DepthEnable = true;
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	
+
+	g_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSolid);
+
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	g_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSkyBox);
+
 	return S_OK;
 }
 
@@ -328,7 +358,7 @@ HRESULT GameManager::InitialiseGraphics()
 
 	//Load and compile pixel and vertex shaders
 	ID3DBlob *VS, *PS, *error;
-	hr = D3DX11CompileFromFile("shaders.hlsl", 0, 0, "VShader", "vs_4_0", 0, 0, 0, &VS, &error, 0);
+	hr = D3DX11CompileFromFile("model_shaders.hlsl", 0, 0, "ModelVS", "vs_4_0", 0, 0, 0, &VS, &error, 0);
 
 	if (error != 0)
 	{
@@ -340,7 +370,7 @@ HRESULT GameManager::InitialiseGraphics()
 		}
 	}
 
-	hr = D3DX11CompileFromFile("shaders.hlsl", 0, 0, "PShader", "ps_4_0", 0, 0, 0, &PS, &error, 0);
+	hr = D3DX11CompileFromFile("model_shaders.hlsl", 0, 0, "ModelPS", "ps_4_0", 0, 0, 0, &PS, &error, 0);
 
 	if (error != 0)
 	{
@@ -388,8 +418,6 @@ HRESULT GameManager::InitialiseGraphics()
 
 	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
 
-
-
 	return S_OK;
 
 }
@@ -403,13 +431,13 @@ void GameManager::CreateLevel()
 
 	g_pModel2 = new Model(g_pD3DDevice, g_pImmediateContext);
 	g_pModel2->LoadObjModel("assets/cube.obj");
-	g_pModel2->LoadShader("model_shaders.hlsl");
-	g_pModel2->AddTexture("assets/texture.bmp");
+	g_pModel2->LoadShader("reflect_shader.hlsl");
+	g_pModel2->AddTexture("assets/skybox02.dds");
 
-	g_pModel3 = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel3->LoadObjModel("assets/cube.obj");
-	g_pModel3->LoadShader("model_shaders.hlsl");
-	g_pModel3->AddTexture("assets/texture.bmp");
+	m_pSkybox = new Model(g_pD3DDevice, g_pImmediateContext);
+	m_pSkybox->LoadObjModel("assets/cube.obj");
+	m_pSkybox->LoadShader("SkyBox_shader.hlsl");
+	m_pSkybox->AddTexture("assets/skybox02.dds");
 
 	m_pPresent = new Model(g_pD3DDevice, g_pImmediateContext);
 	m_pPresent->LoadObjModel("assets/cube.obj");
@@ -424,6 +452,7 @@ void GameManager::CreateLevel()
 	RootNode = new SceneNode();
 	node1 = new SceneNode();
 	node2 = new SceneNode();
+	m_pSkyboxNode = new SceneNode();
 	cameraNode = new SceneNode();
 	m_pPresentNode = new SceneNode();
 	m_pFloorNode = new SceneNode();
@@ -432,6 +461,7 @@ void GameManager::CreateLevel()
 	RootNode->AddChildNode(node2);
 	RootNode->AddChildNode(m_pPresentNode);
 	RootNode->AddChildNode(m_pFloorNode);
+	//RootNode->AddChildNode(m_pSkyboxNode);
 	
 	m_pFloorNode->AddModel(m_pFloor);
 	m_pFloorNode->SetRotationX(-90, RootNode);
@@ -451,6 +481,10 @@ void GameManager::CreateLevel()
 	m_pPresentNode->SetZPos(10.0f, RootNode);
 	m_pPresentNode->SetXPos(-5.0f, RootNode);
 	m_pPresentNode->SetScale(0.1f, RootNode);
+
+	m_pSkyboxNode->AddModel(m_pSkybox);
+	m_pSkyboxNode->SetCanObjectCollide(false);
+	m_pSkyboxNode->SetScale(4.0f, RootNode);
 
 	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
 	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
@@ -511,6 +545,15 @@ void GameManager::RenderFrame(void)
 
 	m_pFloor->SetDirectionalLight(0.0f, 0.6f, -1.0f, 0.0f);
 
+	g_pImmediateContext->RSSetState(m_pRasterSkyBox);	
+	g_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSkyBox, 0);
+
+	m_pSkyboxNode->Execute(&world, &view, &projection);
+
+	g_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSolid, 0);
+	g_pImmediateContext->RSSetState(m_pRasterSolid);
+
+
 	//Draw all of the nodes models
 	RootNode->Execute(&world, &view, &projection);
 
@@ -518,6 +561,8 @@ void GameManager::RenderFrame(void)
 	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
 	m_2DText->RenderText();
 	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
+
+
 
 	g_pSwapChain->Present(0, 0);
 }
@@ -621,6 +666,11 @@ void GameManager::GameLogic()
 	{
 		m_IsGameRunning = false;
 	}
+
+	//Skybox code
+	m_pSkyboxNode->SetXPos(m_pCamera->GetX(), RootNode);
+	m_pSkyboxNode->SetYPos(m_pCamera->GetY(), RootNode);
+	m_pSkyboxNode->SetZPos(m_pCamera->GetZ(), RootNode);
 
 	
 }

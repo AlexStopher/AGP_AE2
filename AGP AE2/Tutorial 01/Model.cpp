@@ -3,6 +3,7 @@
 struct MODEL_CONSTANT_BUFFER
 {
 	XMMATRIX WorldViewProjection; // 64 bytes
+	XMMATRIX WorldView;
 	XMVECTOR AmbientLightColour = { 0.1f, 0.1f, 0.1f, 0.1f }; // 16
 	XMVECTOR DirectionalLightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
 	XMVECTOR DirectionalLightVector;
@@ -82,6 +83,7 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	
 	m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
+	cb0_values.WorldView = (*world) * (*view);
 	cb0_values.WorldViewProjection = (*world) * (*view) * (*projection);
 
 	//Lighting code

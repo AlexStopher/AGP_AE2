@@ -46,7 +46,7 @@ private:
 
 	Model*	  g_pModel;
 	Model*	  g_pModel2;
-	Model*	  g_pModel3;
+	Model*	  m_pSkybox;
 	Model*	  m_pPlayerModel;
 	Model*	  m_pPresent;
 	Model*	  m_pFloor;
@@ -54,6 +54,7 @@ private:
 	SceneNode* RootNode;
 	SceneNode* node1;
 	SceneNode* node2;
+	SceneNode* m_pSkyboxNode;
 	SceneNode* m_pPlayerNode;
 	SceneNode* m_pPresentNode;
 	SceneNode* m_pFloorNode;
@@ -78,11 +79,14 @@ private:
 
 	ID3D11DepthStencilView* g_pZBuffer; //Creates a Z Buffer to allow for correct rendering order
 
-	ID3D11ShaderResourceView* g_pTexture0; // Texture pointer for images to be rendered onto objects
-	ID3D11SamplerState*		  g_pSampler0; //Creates a Sampler state for the pixel shader
-
 	ID3D11BlendState*		  m_pBlendAlphaEnable;
 	ID3D11BlendState*		  m_pBlendAlphaDisable;
+
+	ID3D11RasterizerState*	  m_pRasterSolid = 0;
+	ID3D11RasterizerState*    m_pRasterSkyBox = 0;
+	ID3D11DepthStencilState*  m_pDepthWriteSolid = 0;
+	ID3D11DepthStencilState*  m_pDepthWriteSkyBox = 0;
+
 
 public:
 

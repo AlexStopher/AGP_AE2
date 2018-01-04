@@ -94,7 +94,7 @@ d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathvector.i
 d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathmisc.inl(518): warning C4838: conversion from 'unsigned int' to 'INT' requires a narrowing conversion
 d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathmisc.inl(519): warning C4838: conversion from 'unsigned int' to 'INT' requires a narrowing conversion
   d:\program files (x86)\microsoft directx sdk (june 2010)\include\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(135): warning C4552: '!=': operator has no effect; expected operator with side-effect
-c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(240): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
-c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(241): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(134): warning C4552: '!=': operator has no effect; expected operator with side-effect
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(242): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
+c:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(243): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
   Tutorial 01.vcxproj -> C:\Users\Angel\Documents\GitHub\AGP_AE2\AGP AE2\x64\Debug\Tutorial 01.exe

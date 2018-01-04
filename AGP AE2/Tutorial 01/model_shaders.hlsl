@@ -22,7 +22,7 @@ struct VOut
 VOut ModelVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 normal : NORMAL)
 {
 	VOut output;
-
+	
 	float4 default_color = { 1, 1, 1, 1 };
 
 	output.position = mul(WVPMatrix, position);

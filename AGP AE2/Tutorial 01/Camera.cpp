@@ -9,7 +9,6 @@ Camera::Camera(float x, float y, float z, float cameraYRotation)
 
 	CalcSides();
 
-	//turn into function calls
 	GetViewMatrix();
 	
 
@@ -32,6 +31,11 @@ void Camera::Forward(float distance)
 {
 	m_x += m_dx * distance;
 	m_z += m_dz * distance;
+}
+
+void Camera::Left(float distance)
+{
+
 }
 
 //Works out the dx and dz of the triangle

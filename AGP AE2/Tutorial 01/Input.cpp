@@ -19,7 +19,7 @@ Input::~Input()
 
 }
 
-
+//Initializes the input class
 HRESULT Input::InitialiseInput(HINSTANCE hInst, HWND hWnd)
 {
 	HRESULT hr;
@@ -79,6 +79,7 @@ void Input::ReadInputStates()
 	//Read the current keyboard state
 	hr = m_pKeyboardDevice->GetDeviceState(sizeof(m_KeyboardKeyState), (LPVOID)&m_KeyboardKeyState);
 
+	//If the HRESULT returns a negative, check to see if the keyboard was lost/not initialized and reacquire
 	if (FAILED(hr))
 	{
 		if ((hr == DIERR_INPUTLOST) ||
@@ -88,6 +89,7 @@ void Input::ReadInputStates()
 		}
 	}
 
+	//If the HRESULT returns a negative, check to see if the mouse was lost/not initialized and reacquire
 	hr = m_pMouseDevice->GetDeviceState(sizeof(m_MouseState), (LPVOID)&m_MouseState);
 
 	if (FAILED(hr))
@@ -101,6 +103,7 @@ void Input::ReadInputStates()
 
 }
 
+//Checks to see if a key has been pressed
 bool Input::IsKeyPressed(unsigned char DI_KEYCODE)
 {
 	return m_KeyboardKeyState[DI_KEYCODE] & 0x80;

@@ -138,7 +138,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameManager.cpp" />
-    <ClCompile Include="Humanoid.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -146,6 +145,7 @@
     <ClCompile Include="MenuSystem.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="objfilemodel.cpp" />
+    <ClCompile Include="ParticleGenerator.cpp" />
     <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="text2D.cpp" />
   </ItemGroup>
@@ -186,12 +186,12 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GameManager.h" />
-    <ClInclude Include="Humanoid.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MenuSystem.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="objfilemodel.h" />
+    <ClInclude Include="ParticleGenerator.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="text2D.h" />
   </ItemGroup>

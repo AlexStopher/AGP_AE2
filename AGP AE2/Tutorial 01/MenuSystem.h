@@ -19,6 +19,7 @@ private:
 
 	Text2D*					m_pStart;
 	Text2D*					m_pQuit;
+	Text2D*					m_pTitle;
 
 	ID3D11Device*           m_pD3DDevice;
 	ID3D11DeviceContext*    m_pImmediateContext;

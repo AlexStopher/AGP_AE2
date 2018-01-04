@@ -307,7 +307,7 @@ bool SceneNode::CheckRaycastCollision(xyz rayPosition, xyz rayDirection, bool ch
 
 	if (m_pModel)
 	{
-		bool inRange;
+
 
 
 		//Gets the Distance to the node from the node position

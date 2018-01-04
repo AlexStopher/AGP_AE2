@@ -14,8 +14,6 @@ struct POS_COL_TEX_NORM_VERTEX
 GameManager::GameManager()
 {
 	m_pPlayerInput = new Input;
-	m_IsGameRunning = true;
-	m_IsGamePaused = false;
 }
 
 
@@ -23,6 +21,7 @@ GameManager::~GameManager()
 {
 }
 
+//Cleanup function
 void GameManager::ShutdownD3D()
 {
 
@@ -32,19 +31,19 @@ void GameManager::ShutdownD3D()
 	m_pDepthWriteSkyBox->Release();
 	m_pMenu->~MenuSystem();
 	if (m_pCamera) m_pCamera->~Camera();
-	if (g_pZBuffer) g_pZBuffer->Release();
-	if (g_pVertexBuffer) g_pVertexBuffer->Release();
-	if (g_pInputLayout) g_pInputLayout->Release();
-	if (g_pVertexShader) g_pVertexShader->Release();
-	if (g_pPixelShader) g_pPixelShader->Release();
-	if (g_pConstantBuffer0) g_pConstantBuffer0->Release();
+	if (m_pZBuffer) m_pZBuffer->Release();
+	if (m_pVertexBuffer) m_pVertexBuffer->Release();
+	if (m_pInputLayout) m_pInputLayout->Release();
+	if (m_pVertexShader) m_pVertexShader->Release();
+	if (m_pPixelShader) m_pPixelShader->Release();
+	if (m_pConstantBuffer0) m_pConstantBuffer0->Release();
 
 	if (m_pPlayerInput) m_pPlayerInput->~Input();
 
-	if (g_pBackBufferRTView) g_pBackBufferRTView->Release();
-	if (g_pSwapChain) g_pSwapChain->Release();
-	if (g_pImmediateContext) g_pImmediateContext->Release();
-	if (g_pD3DDevice) g_pD3DDevice->Release();
+	if (m_pBackBufferRTView) m_pBackBufferRTView->Release();
+	if (m_pSwapChain) m_pSwapChain->Release();
+	if (m_pImmediateContext) m_pImmediateContext->Release();
+	if (m_pD3DDevice) m_pD3DDevice->Release();
 
 }
 HINSTANCE GameManager::GetHInstance()
@@ -137,13 +136,15 @@ HRESULT GameManager::InitialiseD3D()
 
 	D3D_DRIVER_TYPE driverTypes[] =
 	{
-		D3D_DRIVER_TYPE_HARDWARE, // comment out this line if you need to test D3D 11.0 functionality on hardware that doesn't support it
+		D3D_DRIVER_TYPE_HARDWARE, 
 		D3D_DRIVER_TYPE_WARP,
 		D3D_DRIVER_TYPE_REFERENCE,
 	};
 
 	UINT numDriverTypes = ARRAYSIZE(driverTypes);
 
+	//creates an array of feature levels that can be used, with the first item being the
+	//one attempted first
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
 		D3D_FEATURE_LEVEL_11_0,
@@ -153,6 +154,7 @@ HRESULT GameManager::InitialiseD3D()
 
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
+	//The swap chain description
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount = 1;
@@ -169,11 +171,11 @@ HRESULT GameManager::InitialiseD3D()
 
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
-		g_driverType = driverTypes[driverTypeIndex];
-		hr = D3D11CreateDeviceAndSwapChain(NULL, g_driverType, NULL,
+		m_driverType = driverTypes[driverTypeIndex];
+		hr = D3D11CreateDeviceAndSwapChain(NULL, m_driverType, NULL,
 			createDeviceFlags, featureLevels, numFeatureLevels,
-			D3D11_SDK_VERSION, &sd, &g_pSwapChain,
-			&g_pD3DDevice, &g_featureLevel, &g_pImmediateContext);
+			D3D11_SDK_VERSION, &sd, &m_pSwapChain,
+			&m_pD3DDevice, &m_featureLevel, &m_pImmediateContext);
 		if (SUCCEEDED(hr))
 			break;
 
@@ -184,14 +186,14 @@ HRESULT GameManager::InitialiseD3D()
 
 	// Get pointer to back buffer texture
 	ID3D11Texture2D *pBackBufferTexture;
-	hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
+	hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
 		(LPVOID*)&pBackBufferTexture);
 
 	if (FAILED(hr)) return hr;
 
 	// Use the back buffer texture pointer to create the render target view
-	hr = g_pD3DDevice->CreateRenderTargetView(pBackBufferTexture, NULL,
-		&g_pBackBufferRTView);
+	hr = m_pD3DDevice->CreateRenderTargetView(pBackBufferTexture, NULL,
+		&m_pBackBufferRTView);
 
 	pBackBufferTexture->Release();
 
@@ -214,7 +216,7 @@ HRESULT GameManager::InitialiseD3D()
 	tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D *pZBufferTexture;
-	hr = g_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
+	hr = m_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
 
 	if (FAILED(hr)) return hr;
 
@@ -225,12 +227,12 @@ HRESULT GameManager::InitialiseD3D()
 	dsvDesc.Format = tex2dDesc.Format;
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
-	hr = g_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &g_pZBuffer);
+	hr = m_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &m_pZBuffer);
 	pZBufferTexture->Release();
 
 
 	// Set the render target view
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pBackBufferRTView, g_pZBuffer);
+	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
 
 	// Set the viewport
 	D3D11_VIEWPORT viewport;
@@ -242,9 +244,9 @@ HRESULT GameManager::InitialiseD3D()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 
-	g_pImmediateContext->RSSetViewports(1, &viewport);
+	m_pImmediateContext->RSSetViewports(1, &viewport);
 
-	m_2DText = new Text2D("assets/font1.png", g_pD3DDevice, g_pImmediateContext);
+	m_2DText = new Text2D("assets/font1.png", m_pD3DDevice, m_pImmediateContext);
 
 	//Creation of the Alpha Blend description
 	D3D11_BLEND_DESC b;
@@ -261,7 +263,7 @@ HRESULT GameManager::InitialiseD3D()
 	b.IndependentBlendEnable = FALSE;
 	b.AlphaToCoverageEnable = FALSE;
 
-	g_pD3DDevice->CreateBlendState(&b, &m_pBlendAlphaEnable);
+	m_pD3DDevice->CreateBlendState(&b, &m_pBlendAlphaEnable);
 
 	//Rasteriser for creating the skybox and normal states
 	D3D11_RASTERIZER_DESC d;
@@ -272,9 +274,9 @@ HRESULT GameManager::InitialiseD3D()
 	d.FrontCounterClockwise = false;
 	d.MultisampleEnable = false;
 
-	hr = g_pD3DDevice->CreateRasterizerState(&d, &m_pRasterSolid);
+	hr = m_pD3DDevice->CreateRasterizerState(&d, &m_pRasterSolid);
 	d.CullMode = D3D11_CULL_FRONT;
-	hr = g_pD3DDevice->CreateRasterizerState(&d, &m_pRasterSkyBox);
+	hr = m_pD3DDevice->CreateRasterizerState(&d, &m_pRasterSkyBox);
 
 	//Depth Stencil to allow the skybox to not be drawn over objects
 	D3D11_DEPTH_STENCIL_DESC ds;
@@ -285,10 +287,10 @@ HRESULT GameManager::InitialiseD3D()
 	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	
 
-	g_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSolid);
+	m_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSolid);
 
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	g_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSkyBox);
+	m_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSkyBox);
 
 	return S_OK;
 }
@@ -297,21 +299,18 @@ HRESULT GameManager::InitialiseGraphics()
 {
 	HRESULT hr = S_OK;
 
+	//Creates the level
 	CreateLevel();
 
-	//Define vertices of a triangle
-	POS_COL_TEX_NORM_VERTEX vertices[] =
+
+	XMFLOAT3 vertices[] =
 	{
-		//Cube
-
-		//front face
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f),	 XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f),	 XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
-		{ XMFLOAT3(-1.0f,-1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f),	 XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
-
-		{ XMFLOAT3(1.0f,1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
-		{ XMFLOAT3(1.0f,-1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
-		{ XMFLOAT3(-1.0f,-1.0f,-1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f,0.0f,-1.0f) },
+		XMFLOAT3(1.0f, -1.0f, 0.0f),
+		XMFLOAT3(1.0f, 1.0f, 0.0f),
+		XMFLOAT3(-1.0f, 1.0f, 0.0f),
+		XMFLOAT3(-1.0f, -1.0f, 0.0f),
+		XMFLOAT3(1.0f, -1.0f, 0.0f),
+		XMFLOAT3(1.0f, 1.0f, 0.0f)
 
 	};
 
@@ -322,7 +321,9 @@ HRESULT GameManager::InitialiseGraphics()
 	bufferDesc.ByteWidth = sizeof(vertices);
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	hr = g_pD3DDevice->CreateBuffer(&bufferDesc, NULL, &g_pVertexBuffer);
+	hr = m_pD3DDevice->CreateBuffer(&bufferDesc, NULL, &m_pVertexBuffer);
+
+
 
 	if (FAILED(hr))
 	{
@@ -335,9 +336,9 @@ HRESULT GameManager::InitialiseGraphics()
 	ZeroMemory(&constant_buffer_desc, sizeof(constant_buffer_desc));
 
 	constant_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
-	constant_buffer_desc.ByteWidth = 176;
+	constant_buffer_desc.ByteWidth = 208;
 	constant_buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	hr = g_pD3DDevice->CreateBuffer(&constant_buffer_desc, NULL, &g_pConstantBuffer0);
+	hr = m_pD3DDevice->CreateBuffer(&constant_buffer_desc, NULL, &m_pConstantBuffer0);
 
 	if (FAILED(hr))
 	{
@@ -348,13 +349,13 @@ HRESULT GameManager::InitialiseGraphics()
 	D3D11_MAPPED_SUBRESOURCE ms;
 
 	//Lock the buffer to allow writing
-	g_pImmediateContext->Map(g_pVertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+	m_pImmediateContext->Map(m_pVertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 
 	//Copy the data
 	memcpy(ms.pData, vertices, sizeof(vertices));
 
 	//Unlock of Buffer
-	g_pImmediateContext->Unmap(g_pVertexBuffer, NULL);
+	m_pImmediateContext->Unmap(m_pVertexBuffer, NULL);
 
 	//Load and compile pixel and vertex shaders
 	ID3DBlob *VS, *PS, *error;
@@ -382,23 +383,23 @@ HRESULT GameManager::InitialiseGraphics()
 		}
 	}
 
-	hr = g_pD3DDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &g_pVertexShader);
+	hr = m_pD3DDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &m_pVertexShader);
 
 	if (FAILED(hr))
 	{
 		return 0;
 	}
 
-	hr = g_pD3DDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &g_pPixelShader);
+	hr = m_pD3DDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &m_pPixelShader);
 
 	if (FAILED(hr))
 	{
 		return 0;
 	}
 
-	g_pImmediateContext->VSSetShader(g_pVertexShader, 0, 0);
+	m_pImmediateContext->VSSetShader(m_pVertexShader, 0, 0);
 
-	g_pImmediateContext->PSSetShader(g_pPixelShader, 0, 0);
+	m_pImmediateContext->PSSetShader(m_pPixelShader, 0, 0);
 
 
 	D3D11_INPUT_ELEMENT_DESC iedesc[] =
@@ -409,262 +410,386 @@ HRESULT GameManager::InitialiseGraphics()
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	hr = g_pD3DDevice->CreateInputLayout(iedesc, ARRAYSIZE(iedesc), VS->GetBufferPointer(), VS->GetBufferSize(), &g_pInputLayout);
+	hr = m_pD3DDevice->CreateInputLayout(iedesc, ARRAYSIZE(iedesc), VS->GetBufferPointer(), VS->GetBufferSize(), &m_pInputLayout);
 
 	if (FAILED(hr))
 	{
 		return hr;
 	}
 
-	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
+	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
 
 	return S_OK;
 
 }
 
+//Creates the levels items and sets the values relevent for the,
 void GameManager::CreateLevel()
 {
-	g_pModel = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel->LoadObjModel("assets/cube.obj");
-	g_pModel->LoadShader("model_shaders.hlsl");
-	g_pModel->AddTexture("assets/skull.png");
+	//Initialization of the games models
+	m_pEnemy = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pEnemy->LoadObjModel("assets/cube.obj");
+	m_pEnemy->LoadShader("model_shaders.hlsl");
+	m_pEnemy->AddTexture("assets/skull.png");
 
-	g_pModel2 = new Model(g_pD3DDevice, g_pImmediateContext);
-	g_pModel2->LoadObjModel("assets/cube.obj");
-	g_pModel2->LoadShader("reflect_shader.hlsl");
-	g_pModel2->AddTexture("assets/skybox02.dds");
+	m_pReflectiveCube = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pReflectiveCube->LoadObjModel("assets/cube.obj");
+	m_pReflectiveCube->LoadShader("reflect_shader.hlsl");
+	m_pReflectiveCube->AddTexture("assets/skybox02.dds");
 
-	m_pSkybox = new Model(g_pD3DDevice, g_pImmediateContext);
+	m_pSkybox = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pSkybox->LoadObjModel("assets/cube.obj");
 	m_pSkybox->LoadShader("SkyBox_shader.hlsl");
 	m_pSkybox->AddTexture("assets/skybox02.dds");
 
-	m_pPresent = new Model(g_pD3DDevice, g_pImmediateContext);
+	m_pPresent = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pPresent->LoadObjModel("assets/cube.obj");
 	m_pPresent->LoadShader("model_shaders.hlsl");
 	m_pPresent->AddTexture("assets/present.bmp");
 
-	m_pFloor = new Model(g_pD3DDevice, g_pImmediateContext);
+	m_pFloor = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pFloor->LoadObjModel("assets/wall.obj");
 	m_pFloor->LoadShader("model_shaders.hlsl");
 	m_pFloor->AddTexture("assets/texture.bmp");
 
+	m_pLeftWall = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall->LoadObjModel("assets/wall.obj");
+	m_pLeftWall->LoadShader("model_shaders.hlsl");
+	m_pLeftWall->AddTexture("assets/texture.bmp");
+
+	m_pRightWall = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall->LoadObjModel("assets/wall.obj");
+	m_pRightWall->LoadShader("model_shaders.hlsl");
+	m_pRightWall->AddTexture("assets/texture.bmp");
+
+	m_pFrontWall = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall->LoadObjModel("assets/wall.obj");
+	m_pFrontWall->LoadShader("model_shaders.hlsl");
+	m_pFrontWall->AddTexture("assets/texture.bmp");
+
+	m_pBackWall = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pBackWall->LoadObjModel("assets/wall.obj");
+	m_pBackWall->LoadShader("model_shaders.hlsl");
+	m_pBackWall->AddTexture("assets/texture.bmp");
+
+	m_pObstacle1 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pObstacle1->LoadObjModel("assets/cube.obj");
+	m_pObstacle1->LoadShader("model_shaders.hlsl");
+	m_pObstacle1->AddTexture("assets/texture.bmp");
+
+	m_pObstacle2 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pObstacle2->LoadObjModel("assets/cube.obj");
+	m_pObstacle2->LoadShader("model_shaders.hlsl");
+	m_pObstacle2->AddTexture("assets/texture.bmp");
+
+	m_pObstacle3 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pObstacle3->LoadObjModel("assets/cube.obj");
+	m_pObstacle3->LoadShader("model_shaders.hlsl");
+	m_pObstacle3->AddTexture("assets/texture.bmp");
+
+	m_pObstacle4 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pObstacle4->LoadObjModel("assets/cube.obj");
+	m_pObstacle4->LoadShader("model_shaders.hlsl");
+	m_pObstacle4->AddTexture("assets/texture.bmp");
+
+	//Initialization of the games SceneNodes
 	RootNode = new SceneNode();
-	node1 = new SceneNode();
-	node2 = new SceneNode();
+	m_pEnemyNode = new SceneNode();
+	m_pReflectiveCubeNode = new SceneNode();
 	m_pSkyboxNode = new SceneNode();
 	cameraNode = new SceneNode();
 	m_pPresentNode = new SceneNode();
-	m_pFloorNode = new SceneNode();
+	m_pFloorNode = new SceneNode(); 
+	m_pLeftWallNode = new SceneNode();
+	m_pRightWallNode = new SceneNode();
+	m_pFrontWallNode = new SceneNode();
+    m_pBackWallNode = new SceneNode();
+	m_pObstacle1Node = new SceneNode();
+	m_pObstacle2Node = new SceneNode();
+	m_pObstacle3Node = new SceneNode();
+	m_pObstacle4Node = new SceneNode();
 
-	RootNode->AddChildNode(node1);
-	RootNode->AddChildNode(node2);
+	//Adding all of the relevent Nodes to the RootNode for Scene management
+	RootNode->AddChildNode(m_pEnemyNode);
+	RootNode->AddChildNode(m_pReflectiveCubeNode);
 	RootNode->AddChildNode(m_pPresentNode);
 	RootNode->AddChildNode(m_pFloorNode);
-	//RootNode->AddChildNode(m_pSkyboxNode);
-	
+	RootNode->AddChildNode(m_pRightWallNode);
+	RootNode->AddChildNode(m_pLeftWallNode);
+	RootNode->AddChildNode(m_pFrontWallNode);
+	RootNode->AddChildNode(m_pBackWallNode);
+	RootNode->AddChildNode(m_pObstacle1Node);
+	RootNode->AddChildNode(m_pObstacle2Node);
+	RootNode->AddChildNode(m_pObstacle3Node);
+	RootNode->AddChildNode(m_pObstacle4Node);
+
+	//Wall/floor code
 	m_pFloorNode->AddModel(m_pFloor);
 	m_pFloorNode->SetRotationX(-90, RootNode);
 	m_pFloorNode->SetYPos(-51, RootNode);
 	m_pFloorNode->SetScale(50, RootNode);
 	m_pFloorNode->SetCanObjectCollide(false);
 
-	node1->AddModel(g_pModel);
-	node2->AddModel(g_pModel2);
+	m_pFrontWallNode->AddModel(m_pFrontWall);
+	m_pFrontWallNode->SetYPos(-45, RootNode);
+	m_pFrontWallNode->SetScale(50, RootNode);
+	
+
+	m_pBackWallNode->AddModel(m_pBackWall);
+	m_pBackWallNode->SetRotationX(-180, RootNode);
+	m_pBackWallNode->SetYPos(-45, RootNode);
+	m_pBackWallNode->SetScale(50, RootNode);
+
+	m_pRightWallNode->AddModel(m_pRightWall);
+	m_pRightWallNode->SetRotationY(-90, RootNode);
+	m_pRightWallNode->SetYPos(-45, RootNode);
+	m_pRightWallNode->SetXPos(100, RootNode);
+	m_pRightWallNode->SetScale(50, RootNode);
+	m_pRightWallNode->SetCanObjectCollide(false);
+
+	m_pLeftWallNode->AddModel(m_pLeftWall);
+	m_pLeftWallNode->SetRotationY(90, RootNode);
+	m_pLeftWallNode->SetYPos(-45, RootNode);
+	m_pLeftWallNode->SetXPos(-100, RootNode);
+	m_pLeftWallNode->SetScale(50, RootNode);
+	m_pLeftWallNode->SetCanObjectCollide(false);
+
+	//Interactables
+	m_pEnemyNode->AddModel(m_pEnemy);
+	m_pReflectiveCubeNode->AddModel(m_pReflectiveCube);
 	m_pPresentNode->AddModel(m_pPresent);
 
-	node1->SetZPos(20.0f, RootNode);
-	node2->SetZPos(10.0f, RootNode);
-	node2->SetXPos(3.0f, RootNode);
+	m_pEnemyNode->SetZPos(30.0f, RootNode);
+	m_pReflectiveCubeNode->SetZPos(10.0f, RootNode);
+	m_pReflectiveCubeNode->SetXPos(0.0f, RootNode);
+	m_pReflectiveCubeNode->SetYPos(3.0f, RootNode);
 
 
-	m_pPresentNode->SetZPos(10.0f, RootNode);
-	m_pPresentNode->SetXPos(-5.0f, RootNode);
-	m_pPresentNode->SetScale(0.1f, RootNode);
+	m_pPresentNode->SetZPos(5.0f, RootNode);
+	m_pPresentNode->SetXPos(5.0f, RootNode);
+	m_pPresentNode->SetScale(0.6f, RootNode);
 
 	m_pSkyboxNode->AddModel(m_pSkybox);
 	m_pSkyboxNode->SetCanObjectCollide(false);
 	m_pSkyboxNode->SetScale(4.0f, RootNode);
+
+	//Static Objects
+	m_pObstacle1Node->AddModel(m_pObstacle1);
+	m_pObstacle1Node->SetXPos(-10, RootNode);
+	m_pObstacle1Node->SetZPos(-10, RootNode);
+	m_pObstacle1Node->SetRotationY(45, RootNode);
+
+	m_pObstacle2Node->AddModel(m_pObstacle2);
+	m_pObstacle2Node->SetXPos(-10, RootNode);
+	m_pObstacle2Node->SetZPos(10, RootNode);
+	m_pObstacle2Node->SetRotationY(45, RootNode);
+
+	m_pObstacle3Node->AddModel(m_pObstacle3);
+	m_pObstacle3Node->SetXPos(10, RootNode);
+	m_pObstacle3Node->SetZPos(10, RootNode);
+	m_pObstacle3Node->SetRotationY(45, RootNode);
+
+	m_pObstacle4Node->AddModel(m_pObstacle4);
+	m_pObstacle4Node->SetXPos(10, RootNode);
+	m_pObstacle4Node->SetZPos(-10, RootNode);
+	m_pObstacle4Node->SetRotationY(45, RootNode);
 
 	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
 	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
 	
 //	m_pThirdPerson->RotateRoll();
 	
-	m_pMenu = new MenuSystem(g_pD3DDevice, g_pImmediateContext);
+	//Creates a menu instance and sets the main menu up
+	m_pMenu = new MenuSystem(m_pD3DDevice, m_pImmediateContext);
 	m_pMenu->SetupMainMenu();
 }
 
 //Render the frame "Main" update loop for the buffer
 void GameManager::RenderFrame(void)
 {
+
 	float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
-
-
-	
-
 	//Clear the back buffer
-
-	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
+	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, rgba_clear_colour);
 
 	//clear the Z Buffer
-	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
+	m_pImmediateContext->ClearDepthStencilView(m_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Render here
-	m_2DText->AddText(std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
-
+	m_2DText->AddText("Score" + std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
 
 	//Select primitive type
-	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	XMMATRIX world, projection, view;
-
 
 	world = XMMatrixIdentity();
 
 	//Matrix that represents the field of view
-	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 640.0f / 480.0f, 0.0001f, 100.0f);
+	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 640.0f / 480.0f, 0.01f, 100.0f);
 
 	//Camera view point
 	view = m_pCamera->GetViewMatrix();
 
 	//Lighting for the world and objects
+	m_pEnemy->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pReflectiveCube->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pFrontWall->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
 
-
-	g_pModel->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-
-
-	g_pModel2->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pObstacle1->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pObstacle2->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pObstacle3->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pObstacle4->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
 
 	m_pPresent->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
 	m_pPresent->SetPointLight(0.0f, 10.0f, 0.0f, 0.0f);
 	m_pPresent->SetPointLightColour(0.0f, 1.0f, 0.0f, 0.0f);
 
-
 	m_pFloor->SetDirectionalLight(0.0f, 0.6f, -1.0f, 0.0f);
 
-	g_pImmediateContext->RSSetState(m_pRasterSkyBox);	
-	g_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSkyBox, 0);
+	//Sets the raster state and depth stencil for the skybox before setting the default states
+	m_pImmediateContext->RSSetState(m_pRasterSkyBox);	
+	m_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSkyBox, 0);
 
 	m_pSkyboxNode->Execute(&world, &view, &projection);
 
-	g_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSolid, 0);
-	g_pImmediateContext->RSSetState(m_pRasterSolid);
-
+	m_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSolid, 0);
+	m_pImmediateContext->RSSetState(m_pRasterSolid);
 
 	//Draw all of the nodes models
 	RootNode->Execute(&world, &view, &projection);
 
 	//Renders text after enabling the alpha channel
-	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
+	m_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
 	m_2DText->RenderText();
-	g_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
+	m_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
 
 
-
-	g_pSwapChain->Present(0, 0);
+	m_pSwapChain->Present(0, 0);
 }
 
 void GameManager::GameLogic()
 {
+	//Reads players input
 	m_pPlayerInput->ReadInputStates();
 
 	XMMATRIX identity = XMMatrixIdentity();
-
 	RootNode->UpdateCollisionTree(&identity, 1.0f);
 
-
+	//Player input code
+	//If the player presses W, check collisions and interactions moving forward
 	if (m_pPlayerInput->IsKeyPressed(DIK_W))
 	{
-		m_pCamera->Forward(0.001f);
-		m_pThirdPerson->Forward(0.001f);
+		m_pCamera->Forward(0.01f);
+		m_pThirdPerson->Forward(0.01f);
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= 0.001f;
-		Lookat.y *= 0.001f;
-		Lookat.z *= 0.001f;
+		Lookat.x *= 0.01f;
+		Lookat.y *= 0.01f;
+		Lookat.z *= 0.01f;
 
+		//Checks for a collision with an object and reverses the movement if so
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
 			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
 		}
-
+		//Checks for collision with the present and if so moves the present to a new position
 		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
-			m_pThirdPerson->Forward(-0.001f);
-			m_pCamera->Forward(-0.001f);
+			m_pThirdPerson->Forward(-0.01f);
+			m_pCamera->Forward(-0.01f);
 		}
 
 
 
 	}
-
+	//If the player presses A, rotate the camera dx and dz values
 	if (m_pPlayerInput->IsKeyPressed(DIK_A))
 	{
-		m_pCamera->Rotate(-0.04f);
-		m_pThirdPerson->Rotate(-0.04f);
+		m_pCamera->Rotate(-0.1f);
+		m_pThirdPerson->Rotate(-0.1f);
 	}
-
+	//If the player presses D, rotate the camera dx and dz values 
 	if (m_pPlayerInput->IsKeyPressed(DIK_D))
 	{
-		m_pCamera->Rotate(0.04f);
-		m_pThirdPerson->Rotate(0.04f);
+		m_pCamera->Rotate(0.1f);
+		m_pThirdPerson->Rotate(0.1f);
 	}
-
+	//If the player presses S, check collisions and interactions moving backwards
 	if (m_pPlayerInput->IsKeyPressed(DIK_S))
 	{
-		m_pCamera->Forward(-0.001f);
-		m_pThirdPerson->Forward(-0.001f);
+		m_pCamera->Forward(-0.01f);
+		m_pThirdPerson->Forward(-0.01f);
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= -0.001f;
-		Lookat.y *= -0.001f;
-		Lookat.z *= -0.001f;
+		Lookat.x *= -0.01f;
+		Lookat.y *= -0.01f;
+		Lookat.z *= -0.01f;
 
+		//Checks for a collision with an object and reverses the movement if so
 		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
-			m_pCamera->Forward(0.001f);
-			m_pThirdPerson->Forward(0.001f);
+			m_pCamera->Forward(0.01f);
+			m_pThirdPerson->Forward(0.01f);
+		}
+		 
+		//Checks for collision with the present and if so moves the present to a new position
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
 		}
 
 	}
+/*
+	if (m_pPlayerInput->IsKeyPressed(DIK_Q))
+	{
+		m_pCamera->IncX(0.01f);
+	}*/
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_ESCAPE))
 		m_eGameState = ePauseMenu;
 
 	//Debug code
-	if (m_pPlayerInput->IsKeyPressed(DIK_K))
-		node1->IncXPos(0.001f, RootNode);
+	//if (m_pPlayerInput->IsKeyPressed(DIK_K))
+	//	m_pEnemyNode->IncXPos(0.001f, RootNode);
 
-	if (m_pPlayerInput->IsKeyPressed(DIK_H))
-		node1->IncXPos(-0.001f, RootNode);
+	//if (m_pPlayerInput->IsKeyPressed(DIK_H))
+	//	m_pEnemyNode->IncXPos(-0.001f, RootNode);
 
-	if (m_pPlayerInput->IsKeyPressed(DIK_J))
-		node1->IncZPos(-0.001f, RootNode);
+	//if (m_pPlayerInput->IsKeyPressed(DIK_J))
+	//	m_pEnemyNode->IncZPos(-0.001f, RootNode);
 
-	if (m_pPlayerInput->IsKeyPressed(DIK_U))
-		node1->IncZPos(0.001f, RootNode);
+	//if (m_pPlayerInput->IsKeyPressed(DIK_U))
+	//	m_pEnemyNode->IncZPos(0.001f, RootNode);
 
-	if (m_pPlayerInput->IsKeyPressed(DIK_I))
-		m_pFloorNode->IncRotX(0.01f, RootNode);
+	//if (m_pPlayerInput->IsKeyPressed(DIK_I))
+	//	m_pReflectiveCubeNode->IncRotX(0.01f, RootNode);
+
 
 	xyz Lookat = m_pCamera->GetLookAt();
 
-	//node1->LookAtXYZ(g_camera->GetX(), g_camera->GetY(), g_camera->GetZ(), RootNode);
-	//node1->MoveForward(0.001f, RootNode);
+	//Enemy "AI" that follows the player around
+	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), RootNode);
+	m_pEnemyNode->MoveForward(0.005f, RootNode);
 
-	Lookat.x *= 0.001f;
-	Lookat.y *= 0.001f;
-	Lookat.z *= 0.001f;
+	Lookat.x *= 0.01f;
+	Lookat.y *= 0.01f;
+	Lookat.z *= 0.01f;
 
-	if (node1->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+	//ends the game if the enemy catches up with the player or the player earns 1000 points
+	if (m_pEnemyNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 	{
-		m_IsGameRunning = false;
+		m_eGameState = eEndGame;
+	}
+	else if (m_Score >= 1000)
+	{
+		m_eGameState = eEndGame;
 	}
 
 	//Skybox code
@@ -675,19 +800,15 @@ void GameManager::GameLogic()
 	
 }
 
-bool GameManager::GetIsRunning()
-{
-	return m_IsGameRunning;
-}
-
+//Main menu loop
 void GameManager::MainMenu()
 {
 	float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
-	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
+	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, rgba_clear_colour);
 	m_pPlayerInput->ReadInputStates();
 
 	m_pMenu->MainMenuLoop(m_pPlayerInput);
-	g_pSwapChain->Present(0, 0);
+	m_pSwapChain->Present(0, 0);
 
 	if (m_pMenu->m_ePlayerSelection == eQuit && m_pMenu->GetSelection() == true)
 	{
@@ -698,5 +819,25 @@ void GameManager::MainMenu()
 		m_eGameState = eInGame;
 	}
 
+}
+//Pause menu loop
+void GameManager::PauseMenu()
+{
+	float rgba_clear_colour[4] = { 0.1f, 0.2f,0.6f, 1.0f };
+
+	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, rgba_clear_colour);
+	m_pPlayerInput->ReadInputStates();
+
+	m_pMenu->PauseMenu(m_pPlayerInput);
+	m_pSwapChain->Present(0, 0);
+
+	if (m_pMenu->m_ePlayerSelection == eQuit && m_pMenu->GetSelection() == true)
+	{
+		m_eGameState = eEndGame;
+	}
+	else if (m_pMenu->m_ePlayerSelection == eStartGame && m_pMenu->GetSelection() == true)
+	{
+		m_eGameState = eInGame;
+	}
 
 }

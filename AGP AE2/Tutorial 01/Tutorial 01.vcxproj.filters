@@ -42,10 +42,10 @@
     <ClCompile Include="GameManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Humanoid.cpp">
+    <ClCompile Include="MenuSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MenuSystem.cpp">
+    <ClCompile Include="ParticleGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -88,10 +88,10 @@
     <ClInclude Include="GameManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Humanoid.h">
+    <ClInclude Include="MenuSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MenuSystem.h">
+    <ClInclude Include="ParticleGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

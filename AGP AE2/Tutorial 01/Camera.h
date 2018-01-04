@@ -20,7 +20,7 @@ private:
 
 	float	m_cameraRotation;
 
-	XMVECTOR	m_position, m_lookat, m_up;
+	XMVECTOR	m_position, m_lookat, m_up, m_right;
 
 
 public:
@@ -28,8 +28,10 @@ public:
 	Camera(float, float, float, float);
 	~Camera();
 
-	void Rotate(float);
-	void Forward(float);
+	void Rotate(float degrees);
+	void Forward(float distance);
+	void Left(float distance);
+	void Right(float distance);
 	void CalcSides();
 	XMMATRIX GetViewMatrix();
 

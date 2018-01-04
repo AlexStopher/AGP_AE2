@@ -72,7 +72,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		else if (p_Game->m_eGameState == ePauseMenu)
 		{
 			//Pause menu
-			p_Game->MainMenu();
+			p_Game->PauseMenu();
 		}
 
 		if (p_Game->m_eGameState == eEndGame)

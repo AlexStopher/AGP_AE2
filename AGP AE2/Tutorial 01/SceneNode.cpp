@@ -26,7 +26,7 @@ SceneNode::SceneNode()
 
 SceneNode::~SceneNode()
 {
-
+	
 }
 
 void SceneNode::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)

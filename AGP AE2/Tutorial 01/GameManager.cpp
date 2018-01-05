@@ -680,14 +680,14 @@ void GameManager::GameLogic()
 	//If the player presses W, check collisions and interactions moving forward
 	if (m_pPlayerInput->IsKeyPressed(DIK_W))
 	{
-		m_pCamera->Forward(0.01f);
-		m_pThirdPerson->Forward(0.01f);
+		m_pCamera->Forward(0.002f);
+		m_pThirdPerson->Forward(0.002f);
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= 0.01f;
-		Lookat.y *= 0.01f;
-		Lookat.z *= 0.01f;
+		Lookat.x *= 0.002f;
+		Lookat.y *= 0.002f;
+		Lookat.z *= 0.002f;
 
 		//Checks for a collision with an object and reverses the movement if so
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
@@ -699,8 +699,8 @@ void GameManager::GameLogic()
 		//Checks for collision with the present and if so moves the present to a new position
 		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
-			m_pThirdPerson->Forward(-0.01f);
-			m_pCamera->Forward(-0.01f);
+			m_pThirdPerson->Forward(-0.002f);
+			m_pCamera->Forward(-0.002f);
 		}
 
 
@@ -709,32 +709,32 @@ void GameManager::GameLogic()
 	//If the player presses A, rotate the camera dx and dz values
 	if (m_pPlayerInput->IsKeyPressed(DIK_A))
 	{
-		m_pCamera->Rotate(-0.1f);
-		m_pThirdPerson->Rotate(-0.1f);
+		m_pCamera->Rotate(-0.05f);
+		m_pThirdPerson->Rotate(-0.05f);
 	}
 	//If the player presses D, rotate the camera dx and dz values 
 	if (m_pPlayerInput->IsKeyPressed(DIK_D))
 	{
-		m_pCamera->Rotate(0.1f);
-		m_pThirdPerson->Rotate(0.1f);
+		m_pCamera->Rotate(0.05f);
+		m_pThirdPerson->Rotate(0.05f);
 	}
 	//If the player presses S, check collisions and interactions moving backwards
 	if (m_pPlayerInput->IsKeyPressed(DIK_S))
 	{
-		m_pCamera->Forward(-0.01f);
-		m_pThirdPerson->Forward(-0.01f);
+		m_pCamera->Forward(-0.002f);
+		m_pThirdPerson->Forward(-0.002f);
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= -0.01f;
-		Lookat.y *= -0.01f;
-		Lookat.z *= -0.01f;
+		Lookat.x *= -0.002f;
+		Lookat.y *= -0.002f;
+		Lookat.z *= -0.002f;
 
 		//Checks for a collision with an object and reverses the movement if so
 		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
-			m_pCamera->Forward(0.01f);
-			m_pThirdPerson->Forward(0.01f);
+			m_pCamera->Forward(0.002f);
+			m_pThirdPerson->Forward(0.002f);
 		}
 		 
 		//Checks for collision with the present and if so moves the present to a new position
@@ -776,11 +776,11 @@ void GameManager::GameLogic()
 
 	//Enemy "AI" that follows the player around
 	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), RootNode);
-	m_pEnemyNode->MoveForward(0.005f, RootNode);
+	m_pEnemyNode->MoveForward(0.001f, RootNode);
 
-	Lookat.x *= 0.01f;
-	Lookat.y *= 0.01f;
-	Lookat.z *= 0.01f;
+	Lookat.x *= 0.002f;
+	Lookat.y *= 0.002f;
+	Lookat.z *= 0.002f;
 
 	//ends the game if the enemy catches up with the player or the player earns 1000 points
 	if (m_pEnemyNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)

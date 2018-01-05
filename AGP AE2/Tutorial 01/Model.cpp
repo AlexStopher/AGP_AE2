@@ -25,14 +25,7 @@ Model::Model(ID3D11Device* D3DDevice, ID3D11DeviceContext* ImmediateContext)
 
 Model::~Model()
 {
-	delete m_pObject;
-
-	m_pTexture0->Release();
-	m_pSampler0->Release();
-	m_pConstantBuffer->Release();
-	m_pInputLayout->Release();
-	m_pPixelShader->Release();
-	m_pVertexShader->Release();
+	
 }
 
 int Model::LoadObjModel(char* filename)

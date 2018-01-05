@@ -9,6 +9,11 @@ MenuSystem::MenuSystem(ID3D11Device* D3DDevice, ID3D11DeviceContext* ImmediateCo
 
 MenuSystem::~MenuSystem()
 {
+	m_pStart->~Text2D();
+	m_pQuit->~Text2D();
+	m_pTitle->~Text2D();
+	m_pD3DDevice->Release();
+	m_pImmediateContext->Release();
 
 }
 
@@ -25,7 +30,7 @@ void MenuSystem::MainMenuLoop(Input* player)
 
 	player->ReadInputStates();
 
-	m_pTitle->AddText("Doom Bastard", -0.8f, 0.7f, 0.1f);
+	m_pTitle->AddText("DUUM", -0.8f, 0.7f, 0.1f);
 	m_pStart->AddText("Start Game", -0.7f, 0.3f, 0.1f);
 	m_pQuit->AddText("Quit", -0.7f, 0.0f, 0.1f);
 

@@ -71,7 +71,7 @@ bool SceneNode::DetachChildNode(SceneNode* node)
 		if (m_Children[i]->DetachChildNode(node) == true)
 			return true;
 	}
-
+	
 	return false;
 }
 

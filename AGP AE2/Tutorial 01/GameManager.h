@@ -78,7 +78,7 @@ private:
 	SceneNode* m_pObstacle3Node;
 	SceneNode* m_pObstacle4Node;
 
-	SceneNode* cameraNode;
+	SceneNode* m_pCameraNode;
 
 	
 	//DirectX structures 

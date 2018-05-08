@@ -16,22 +16,24 @@ class Camera
 private:
 
 	float	m_x, m_y, m_z;
-	float	m_dx, m_dz;
+	float	m_dx, m_dy, m_dz;
 
-	float	m_cameraRotation;
+	float	m_cameraYawRotation, m_cameraPitchRotation;
 
-	XMVECTOR	m_position, m_lookat, m_up, m_right;
+	XMVECTOR	m_position, m_lookat, m_up, m_right, m_forward;
 
+	XMVECTOR	m_DefaultForward, m_DefaultRight;
 
+	XMMATRIX	m_RotationMatrix;
 public:
 
 	Camera(float, float, float, float);
 	~Camera();
 
 	void Rotate(float degrees);
+	void Pitch(float degrees);
 	void Forward(float distance);
-	void Left(float distance);
-	void Right(float distance);
+	void Strafe(float distance);
 	void CalcSides();
 	XMMATRIX GetViewMatrix();
 
@@ -40,4 +42,6 @@ public:
 	float GetZ();
 	xyz GetCameraPos();
 	xyz GetLookAt();
+	xyz GetCameraRight();
+
 };

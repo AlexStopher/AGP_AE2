@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+
 struct xyz
 {
 	float x, y, z;

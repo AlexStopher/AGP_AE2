@@ -497,7 +497,7 @@ void GameManager::CreateLevel()
 	m_pEnemyNode = new SceneNode();
 	m_pReflectiveCubeNode = new SceneNode();
 	m_pSkyboxNode = new SceneNode();
-	cameraNode = new SceneNode();
+	m_pCameraNode = new SceneNode();
 	m_pPresentNode = new SceneNode();
 	m_pFloorNode = new SceneNode(); 
 	m_pLeftWallNode = new SceneNode();
@@ -568,6 +568,7 @@ void GameManager::CreateLevel()
 	m_pPresentNode->SetZPos(5.0f, RootNode);
 	m_pPresentNode->SetXPos(5.0f, RootNode);
 	m_pPresentNode->SetScale(0.6f, RootNode);
+	
 
 	m_pSkyboxNode->AddModel(m_pSkybox);
 	m_pSkyboxNode->SetCanObjectCollide(false);
@@ -676,6 +677,59 @@ void GameManager::GameLogic()
 	XMMATRIX identity = XMMatrixIdentity();
 	RootNode->UpdateCollisionTree(&identity, 1.0f);
 
+	if (m_pPlayerInput->IsKeyPressed(DIK_A))
+	{
+		m_pCamera->Strafe(0.002f);
+
+		xyz Lookat = m_pCamera->GetCameraRight();
+
+		Lookat.x *= -0.008f;
+		Lookat.y *= -0.008f;
+		Lookat.z *= -0.008f;
+
+
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+		}
+
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		{
+			m_pCamera->Strafe(-0.002f);
+
+		}
+	
+		
+	}
+	else if (m_pPlayerInput->IsKeyPressed(DIK_D))
+	{
+		m_pCamera->Strafe(-0.002f);
+
+		xyz Lookat = m_pCamera->GetCameraRight();
+
+		Lookat.x *= 0.008f;
+		Lookat.y *= 0.008f;
+		Lookat.z *= 0.008f;
+
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+		}
+
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		{
+			m_pCamera->Strafe(0.002f);
+			
+		}
+
+		
+	}
+
+
 	//Player input code
 	//If the player presses W, check collisions and interactions moving forward
 	if (m_pPlayerInput->IsKeyPressed(DIK_W))
@@ -685,9 +739,9 @@ void GameManager::GameLogic()
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= 0.002f;
-		Lookat.y *= 0.002f;
-		Lookat.z *= 0.002f;
+		Lookat.x *= 0.008f;
+		Lookat.y *= 0.008f;
+		Lookat.z *= 0.008f;
 
 		//Checks for a collision with an object and reverses the movement if so
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
@@ -703,23 +757,11 @@ void GameManager::GameLogic()
 			m_pCamera->Forward(-0.002f);
 		}
 
+		
 
 
-	}
-	//If the player presses A, rotate the camera dx and dz values
-	if (m_pPlayerInput->IsKeyPressed(DIK_A))
-	{
-		m_pCamera->Rotate(-0.05f);
-		m_pThirdPerson->Rotate(-0.05f);
-	}
-	//If the player presses D, rotate the camera dx and dz values 
-	if (m_pPlayerInput->IsKeyPressed(DIK_D))
-	{
-		m_pCamera->Rotate(0.05f);
-		m_pThirdPerson->Rotate(0.05f);
-	}
-	//If the player presses S, check collisions and interactions moving backwards
-	if (m_pPlayerInput->IsKeyPressed(DIK_S))
+	}	
+	else if (m_pPlayerInput->IsKeyPressed(DIK_S))
 	{
 		m_pCamera->Forward(-0.002f);
 		m_pThirdPerson->Forward(-0.002f);
@@ -730,14 +772,80 @@ void GameManager::GameLogic()
 		Lookat.y *= -0.002f;
 		Lookat.z *= -0.002f;
 
-		//Checks for a collision with an object and reverses the movement if so
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+		}
+		
 		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Forward(0.002f);
 			m_pThirdPerson->Forward(0.002f);
+		}		 	
+
+	}
+
+	if (m_pPlayerInput->IsKeyPressed(DIK_ESCAPE))
+		m_eGameState = ePauseMenu;
+
+	//Mouse input code
+
+	if (m_pPlayerInput->HasMouseMoved())
+	{
+		m_pCamera->Rotate(m_pPlayerInput->GetMouseX() / 10);
+		//Rotate Y as well?
+	}
+	
+
+	//TODO - Add proper deadzones for the controller analogues
+#pragma region ControllerInput
+
+	if (m_pPlayerInput->IsButtonPressed(XINPUT_GAMEPAD_START))
+		m_eGameState = ePauseMenu;
+
+	if (m_pPlayerInput->GetControllerLeftAnalogueY() >= 10000.0f
+		|| m_pPlayerInput->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP))
+	{
+		m_pCamera->Forward(0.002f);
+		m_pThirdPerson->Forward(0.002f);
+
+		xyz Lookat = m_pCamera->GetLookAt();
+
+		Lookat.x *= 0.008f;
+		Lookat.y *= 0.008f;
+		Lookat.z *= 0.008f;
+
+		//Checks for a collision with an object and reverses the movement if so
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
 		}
-		 
 		//Checks for collision with the present and if so moves the present to a new position
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		{
+			m_pThirdPerson->Forward(-0.002f);
+			m_pCamera->Forward(-0.002f);
+		}
+
+	
+		
+	}
+	else if (m_pPlayerInput->GetControllerLeftAnalogueY() <= -10000.0f
+		|| m_pPlayerInput->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN))
+	{
+		m_pCamera->Forward(-0.002f);
+		m_pThirdPerson->Forward(-0.002f);
+
+		xyz Lookat = m_pCamera->GetLookAt();
+
+		Lookat.x *= -0.008f;
+		Lookat.y *= -0.008f;
+		Lookat.z *= -0.008f;
+
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
@@ -745,15 +853,77 @@ void GameManager::GameLogic()
 			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
 		}
 
-	}
-/*
-	if (m_pPlayerInput->IsKeyPressed(DIK_Q))
-	{
-		m_pCamera->IncX(0.01f);
-	}*/
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		{
+			m_pCamera->Forward(0.002f);
+			m_pThirdPerson->Forward(0.002f);
+		}
 
-	if (m_pPlayerInput->IsKeyPressed(DIK_ESCAPE))
-		m_eGameState = ePauseMenu;
+	}
+
+	if (m_pPlayerInput->GetControllerLeftAnalogueX() >= 10000.0f
+		|| m_pPlayerInput->IsButtonPressed(XINPUT_GAMEPAD_DPAD_RIGHT))
+	{
+		m_pCamera->Strafe(-0.002f);
+
+		xyz Lookat = m_pCamera->GetCameraRight();
+
+		Lookat.x *= 0.008f;
+		Lookat.y *= 0.008f;
+		Lookat.z *= 0.008f;
+
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+		}
+
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		{
+			m_pCamera->Strafe(0.002f);
+
+		}
+
+
+	}	
+	else if (m_pPlayerInput->GetControllerLeftAnalogueX() <= -10000.0f
+		|| m_pPlayerInput->IsButtonPressed(XINPUT_GAMEPAD_DPAD_LEFT))
+	{	
+		m_pCamera->Strafe(0.002f);
+
+		xyz Lookat = m_pCamera->GetCameraRight();
+
+		Lookat.x *= -0.008f;
+		Lookat.y *= -0.008f;
+		Lookat.z *= -0.008f;
+
+
+		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+		{
+			m_Score += 100;
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+		}
+
+		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		{
+			m_pCamera->Strafe(-0.002f);
+
+		}
+	}
+
+	if (m_pPlayerInput->GetControllerRightAnalogueX() >= 20000.0f)
+	{
+		m_pCamera->Rotate(0.502f);
+	}
+	else if (m_pPlayerInput->GetControllerRightAnalogueX() <= -20000.0f)
+	{
+		m_pCamera->Rotate(-0.502f);
+	}
+
+#pragma endregion
+
 
 	//Debug code
 	//if (m_pPlayerInput->IsKeyPressed(DIK_K))
@@ -778,6 +948,7 @@ void GameManager::GameLogic()
 	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), RootNode);
 	m_pEnemyNode->MoveForward(0.001f, RootNode);
 
+
 	Lookat.x *= 0.002f;
 	Lookat.y *= 0.002f;
 	Lookat.z *= 0.002f;
@@ -785,12 +956,20 @@ void GameManager::GameLogic()
 	//ends the game if the enemy catches up with the player or the player earns 1000 points
 	if (m_pEnemyNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 	{
+
 		m_eGameState = eEndGame;
 	}
 	else if (m_Score >= 1000)
 	{
 		m_eGameState = eEndGame;
 	}
+
+	/*xyz PresentPos(m_pPresentNode->GetXPos(), m_pPresentNode->GetYPos(), m_pPresentNode->GetZPos());
+
+	if (m_pEnemyNode->CheckRaycastCollision(PresentPos, Lookat, false) == true)
+	{
+		
+	}*/
 
 	//Skybox code
 	m_pSkyboxNode->SetXPos(m_pCamera->GetX(), RootNode);

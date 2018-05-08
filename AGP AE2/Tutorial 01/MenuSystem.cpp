@@ -37,11 +37,13 @@ void MenuSystem::MainMenuLoop(Input* player)
 
 
 	//if statements for the players input to move the position of the highlighted item
-	if (player->IsKeyPressed(DIK_W) && m_Position < 1)
+	if ((player->IsKeyPressed(DIK_W) || player->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP)) 
+		&& m_Position < 1)
 	{
 		m_Position++;
 	}
-	else if (player->IsKeyPressed(DIK_S) && m_Position > 0)
+	else if ((player->IsKeyPressed(DIK_S) || player->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN))
+		&& m_Position > 0)
 	{
 		m_Position--;
 	}
@@ -60,7 +62,8 @@ void MenuSystem::MainMenuLoop(Input* player)
 
 	//Statement below checks to see if Cross was pressed and if so changes the selection value to true
 	//else it reverts it to false on the next loop;
-	if (player->IsKeyPressed(DIK_SPACE))
+	if (player->IsKeyPressed(DIK_SPACE)
+		|| player->IsButtonPressed(XINPUT_GAMEPAD_A))
 	{
 		m_Selection = true;
 	}
@@ -94,16 +97,19 @@ void MenuSystem::PauseMenu(Input* player)
 	m_pStart->AddText("Continue", -0.7f, 0.3f, 0.1f);
 	m_pQuit->AddText("Quit", -0.7f, 0.0f, 0.1f);
 
-	if (player->IsKeyPressed(DIK_W) && m_Position < 1)
+	if ((player->IsKeyPressed(DIK_W) || player->IsButtonPressed(XINPUT_GAMEPAD_DPAD_UP))
+		&& m_Position < 1)
 	{
 		m_Position++;
 	}
-	else if (player->IsKeyPressed(DIK_S) && m_Position > 0)
+	else if (player->IsKeyPressed(DIK_S) || player->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN)
+		&& m_Position > 0)
 	{
 		m_Position--;
 	}
 
-	if (player->IsKeyPressed(DIK_SPACE))
+	if (player->IsKeyPressed(DIK_SPACE) 
+		|| player->IsButtonPressed(XINPUT_GAMEPAD_A))
 	{
 		m_Selection = true;
 	}

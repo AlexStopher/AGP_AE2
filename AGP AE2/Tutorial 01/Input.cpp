@@ -69,6 +69,10 @@ HRESULT Input::InitialiseInput(HINSTANCE hInst, HWND hWnd)
 	if (FAILED(hr))
 		return hr;
 
+	//Setup of XInput controller 
+	ZeroMemory(&m_ControllerState, sizeof(m_ControllerState));
+	
+
 	return S_OK;
 }
 
@@ -101,13 +105,73 @@ void Input::ReadInputStates()
 		}
 	}
 
+	//Gets the current controller state 
+	DWORD ControllerStateResult = XInputGetState(0, &m_ControllerState);
+
+	if (ControllerStateResult != ERROR_SUCCESS)
+	{
+		//Add a custom debug here
+	}
+
 }
 
 //Checks to see if a key has been pressed
 bool Input::IsKeyPressed(unsigned char DI_KEYCODE)
 {
 	return m_KeyboardKeyState[DI_KEYCODE] & 0x80;
+
+	
 }
 
+bool Input::HasMouseMoved()
+{
+	if (m_MouseState.lX != m_LastMouseState.lX
+		|| m_MouseState.lY != m_LastMouseState.lY)
+	{
+		return true;
+	}
+	else
+		return false;
+}
 
+float Input::GetMouseX()
+{
+	return m_MouseState.lX - m_LastMouseState.lX;
+}
 
+void Input::UpdateMouse()
+{
+	m_LastMouseState = m_MouseState;
+}
+
+bool Input::IsButtonPressed(unsigned short BUTTON_CODE)
+{
+	return m_ControllerState.Gamepad.wButtons & BUTTON_CODE;
+}
+
+float Input::GetControllerLeftAnalogueX()
+{
+	return m_ControllerState.Gamepad.sThumbLX;
+}
+
+float Input::GetControllerLeftAnalogueY()
+{
+	return m_ControllerState.Gamepad.sThumbLY;
+}
+
+float Input::GetControllerRightAnalogueX()
+{
+	return m_ControllerState.Gamepad.sThumbRX;
+}
+
+float Input::GetLeftStickDirection()
+{
+	float tempMagnitude = 0;
+
+	float tempLX = m_ControllerState.Gamepad.sThumbLX;
+	float tempLY = m_ControllerState.Gamepad.sThumbLY;
+
+	tempMagnitude = (tempLX * tempLX + tempLY * tempLY);
+
+	return tempMagnitude;
+}

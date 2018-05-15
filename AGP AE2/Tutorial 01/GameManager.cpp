@@ -84,7 +84,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 HRESULT GameManager::InitaliseWindow(HINSTANCE hInstance, int nCmdShow)
 {
-	char Name[100] = "Alex's Project";
+	char Name[100] = "DUUM";
 
 	//Register class
 	WNDCLASSEX wcex = { 0 };
@@ -101,7 +101,7 @@ HRESULT GameManager::InitaliseWindow(HINSTANCE hInstance, int nCmdShow)
 
 	//Create window
 	m_hInst = hInstance;
-	RECT rc = { 0,0,640,480 };
+	RECT rc = { 0,0,1280,800 };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 	m_hWnd = CreateWindow(Name, Name, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left,
@@ -133,7 +133,7 @@ HRESULT GameManager::InitialiseD3D()
 #ifdef _DEBUG
 	createDeviceFlags != D3D11_CREATE_DEVICE_DEBUG;
 #endif
-
+	
 	D3D_DRIVER_TYPE driverTypes[] =
 	{
 		D3D_DRIVER_TYPE_HARDWARE, 
@@ -246,7 +246,8 @@ HRESULT GameManager::InitialiseD3D()
 
 	m_pImmediateContext->RSSetViewports(1, &viewport);
 
-	m_2DText = new Text2D("assets/font1.png", m_pD3DDevice, m_pImmediateContext);
+	m_p2DText = new Text2D("assets/font1.png", m_pD3DDevice, m_pImmediateContext);
+	m_pUISprite = new Sprite("assets/UIpng.png", m_pD3DDevice, m_pImmediateContext);
 
 	//Creation of the Alpha Blend description
 	D3D11_BLEND_DESC b;
@@ -291,6 +292,12 @@ HRESULT GameManager::InitialiseD3D()
 
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	m_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSkyBox);
+
+	//Audio stuff
+
+	//ZeroMemory(&m_pAudioEngine, sizeof(m_pAudioEngine));
+
+	//m_pAudioEngine->
 
 	return S_OK;
 }
@@ -428,9 +435,9 @@ void GameManager::CreateLevel()
 {
 	//Initialization of the games models
 	m_pEnemy = new Model(m_pD3DDevice, m_pImmediateContext);
-	m_pEnemy->LoadObjModel("assets/cube.obj");
+	m_pEnemy->LoadObjModel("assets/wall.obj");
 	m_pEnemy->LoadShader("model_shaders.hlsl");
-	m_pEnemy->AddTexture("assets/skull.png");
+	m_pEnemy->AddTexture("assets/UIpng.png");
 
 	m_pReflectiveCube = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pReflectiveCube->LoadObjModel("assets/cube.obj");
@@ -493,7 +500,7 @@ void GameManager::CreateLevel()
 	m_pObstacle4->AddTexture("assets/texture.bmp");
 
 	//Initialization of the games SceneNodes
-	RootNode = new SceneNode();
+	m_pRootNode = new SceneNode();
 	m_pEnemyNode = new SceneNode();
 	m_pReflectiveCubeNode = new SceneNode();
 	m_pSkyboxNode = new SceneNode();
@@ -510,48 +517,48 @@ void GameManager::CreateLevel()
 	m_pObstacle4Node = new SceneNode();
 
 	//Adding all of the relevent Nodes to the RootNode for Scene management
-	RootNode->AddChildNode(m_pEnemyNode);
-	RootNode->AddChildNode(m_pReflectiveCubeNode);
-	RootNode->AddChildNode(m_pPresentNode);
-	RootNode->AddChildNode(m_pFloorNode);
-	RootNode->AddChildNode(m_pRightWallNode);
-	RootNode->AddChildNode(m_pLeftWallNode);
-	RootNode->AddChildNode(m_pFrontWallNode);
-	RootNode->AddChildNode(m_pBackWallNode);
-	RootNode->AddChildNode(m_pObstacle1Node);
-	RootNode->AddChildNode(m_pObstacle2Node);
-	RootNode->AddChildNode(m_pObstacle3Node);
-	RootNode->AddChildNode(m_pObstacle4Node);
+	m_pRootNode->AddChildNode(m_pEnemyNode);
+	m_pRootNode->AddChildNode(m_pReflectiveCubeNode);
+	m_pRootNode->AddChildNode(m_pPresentNode);
+	m_pRootNode->AddChildNode(m_pFloorNode);
+	m_pRootNode->AddChildNode(m_pRightWallNode);
+	m_pRootNode->AddChildNode(m_pLeftWallNode);
+	m_pRootNode->AddChildNode(m_pFrontWallNode);
+	m_pRootNode->AddChildNode(m_pBackWallNode);
+	m_pRootNode->AddChildNode(m_pObstacle1Node);
+	m_pRootNode->AddChildNode(m_pObstacle2Node);
+	m_pRootNode->AddChildNode(m_pObstacle3Node);
+	m_pRootNode->AddChildNode(m_pObstacle4Node);
 
 	//Wall/floor code
 	m_pFloorNode->AddModel(m_pFloor);
-	m_pFloorNode->SetRotationX(-90, RootNode);
-	m_pFloorNode->SetYPos(-51, RootNode);
-	m_pFloorNode->SetScale(50, RootNode);
+	m_pFloorNode->SetRotationX(-90, m_pRootNode);
+	m_pFloorNode->SetYPos(-51, m_pRootNode);
+	m_pFloorNode->SetScale(50, m_pRootNode);
 	m_pFloorNode->SetCanObjectCollide(false);
 
 	m_pFrontWallNode->AddModel(m_pFrontWall);
-	m_pFrontWallNode->SetYPos(-45, RootNode);
-	m_pFrontWallNode->SetScale(50, RootNode);
+	m_pFrontWallNode->SetYPos(-45, m_pRootNode);
+	m_pFrontWallNode->SetScale(50, m_pRootNode);
 	
 
 	m_pBackWallNode->AddModel(m_pBackWall);
-	m_pBackWallNode->SetRotationX(-180, RootNode);
-	m_pBackWallNode->SetYPos(-45, RootNode);
-	m_pBackWallNode->SetScale(50, RootNode);
+	m_pBackWallNode->SetRotationX(-180, m_pRootNode);
+	m_pBackWallNode->SetYPos(-45, m_pRootNode);
+	m_pBackWallNode->SetScale(50, m_pRootNode);
 
 	m_pRightWallNode->AddModel(m_pRightWall);
-	m_pRightWallNode->SetRotationY(-90, RootNode);
-	m_pRightWallNode->SetYPos(-45, RootNode);
-	m_pRightWallNode->SetXPos(100, RootNode);
-	m_pRightWallNode->SetScale(50, RootNode);
+	m_pRightWallNode->SetRotationY(-90, m_pRootNode);
+	m_pRightWallNode->SetYPos(-45, m_pRootNode);
+	m_pRightWallNode->SetXPos(100, m_pRootNode);
+	m_pRightWallNode->SetScale(50, m_pRootNode);
 	m_pRightWallNode->SetCanObjectCollide(false);
 
 	m_pLeftWallNode->AddModel(m_pLeftWall);
-	m_pLeftWallNode->SetRotationY(90, RootNode);
-	m_pLeftWallNode->SetYPos(-45, RootNode);
-	m_pLeftWallNode->SetXPos(-100, RootNode);
-	m_pLeftWallNode->SetScale(50, RootNode);
+	m_pLeftWallNode->SetRotationY(90, m_pRootNode);
+	m_pLeftWallNode->SetYPos(-45, m_pRootNode);
+	m_pLeftWallNode->SetXPos(-100, m_pRootNode);
+	m_pLeftWallNode->SetScale(50, m_pRootNode);
 	m_pLeftWallNode->SetCanObjectCollide(false);
 
 	//Interactables
@@ -559,50 +566,50 @@ void GameManager::CreateLevel()
 	m_pReflectiveCubeNode->AddModel(m_pReflectiveCube);
 	m_pPresentNode->AddModel(m_pPresent);
 
-	m_pEnemyNode->SetZPos(30.0f, RootNode);
-	m_pReflectiveCubeNode->SetZPos(10.0f, RootNode);
-	m_pReflectiveCubeNode->SetXPos(0.0f, RootNode);
-	m_pReflectiveCubeNode->SetYPos(3.0f, RootNode);
+	m_pEnemyNode->SetZPos(30.0f, m_pRootNode);
+	m_pReflectiveCubeNode->SetZPos(10.0f, m_pRootNode);
+	m_pReflectiveCubeNode->SetXPos(0.0f, m_pRootNode);
+	m_pReflectiveCubeNode->SetYPos(3.0f, m_pRootNode);
 
 
-	m_pPresentNode->SetZPos(5.0f, RootNode);
-	m_pPresentNode->SetXPos(5.0f, RootNode);
-	m_pPresentNode->SetScale(0.6f, RootNode);
+	m_pPresentNode->SetZPos(5.0f, m_pRootNode);
+	m_pPresentNode->SetXPos(5.0f, m_pRootNode);
+	m_pPresentNode->SetScale(0.6f, m_pRootNode);
 	
 
 	m_pSkyboxNode->AddModel(m_pSkybox);
 	m_pSkyboxNode->SetCanObjectCollide(false);
-	m_pSkyboxNode->SetScale(4.0f, RootNode);
+	m_pSkyboxNode->SetScale(4.0f, m_pRootNode);
 
 	//Static Objects
 	m_pObstacle1Node->AddModel(m_pObstacle1);
-	m_pObstacle1Node->SetXPos(-10, RootNode);
-	m_pObstacle1Node->SetZPos(-10, RootNode);
-	m_pObstacle1Node->SetRotationY(45, RootNode);
+	m_pObstacle1Node->SetXPos(-10, m_pRootNode);
+	m_pObstacle1Node->SetZPos(-10, m_pRootNode);
+	m_pObstacle1Node->SetRotationY(45, m_pRootNode);
 
 	m_pObstacle2Node->AddModel(m_pObstacle2);
-	m_pObstacle2Node->SetXPos(-10, RootNode);
-	m_pObstacle2Node->SetZPos(10, RootNode);
-	m_pObstacle2Node->SetRotationY(45, RootNode);
+	m_pObstacle2Node->SetXPos(-10, m_pRootNode);
+	m_pObstacle2Node->SetZPos(10, m_pRootNode);
+	m_pObstacle2Node->SetRotationY(45, m_pRootNode);
 
 	m_pObstacle3Node->AddModel(m_pObstacle3);
-	m_pObstacle3Node->SetXPos(10, RootNode);
-	m_pObstacle3Node->SetZPos(10, RootNode);
-	m_pObstacle3Node->SetRotationY(45, RootNode);
+	m_pObstacle3Node->SetXPos(10, m_pRootNode);
+	m_pObstacle3Node->SetZPos(10, m_pRootNode);
+	m_pObstacle3Node->SetRotationY(45, m_pRootNode);
 
 	m_pObstacle4Node->AddModel(m_pObstacle4);
-	m_pObstacle4Node->SetXPos(10, RootNode);
-	m_pObstacle4Node->SetZPos(-10, RootNode);
-	m_pObstacle4Node->SetRotationY(45, RootNode);
+	m_pObstacle4Node->SetXPos(10, m_pRootNode);
+	m_pObstacle4Node->SetZPos(-10, m_pRootNode);
+	m_pObstacle4Node->SetRotationY(45, m_pRootNode);
 
 	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
 	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
 	
-//	m_pThirdPerson->RotateRoll();
-	
 	//Creates a menu instance and sets the main menu up
 	m_pMenu = new MenuSystem(m_pD3DDevice, m_pImmediateContext);
 	m_pMenu->SetupMainMenu();
+
+	
 }
 
 //Render the frame "Main" update loop for the buffer
@@ -617,7 +624,9 @@ void GameManager::RenderFrame(void)
 	m_pImmediateContext->ClearDepthStencilView(m_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Render here
-	m_2DText->AddText("Score" + std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
+	m_p2DText->AddText("Score" + std::to_string(m_Score), -1.0f, +1.0f, 0.1f);
+
+
 
 	//Select primitive type
 	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -658,12 +667,14 @@ void GameManager::RenderFrame(void)
 	m_pImmediateContext->RSSetState(m_pRasterSolid);
 
 	//Draw all of the nodes models
-	RootNode->Execute(&world, &view, &projection);
+	m_pRootNode->Execute(&world, &view, &projection);
 
 	//Renders text after enabling the alpha channel
 	m_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
-	m_2DText->RenderText();
+	m_p2DText->RenderText();
+	//m_pUISprite->Draw();
 	m_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
+
 
 
 	m_pSwapChain->Present(0, 0);
@@ -671,11 +682,14 @@ void GameManager::RenderFrame(void)
 
 void GameManager::GameLogic()
 {
+	//Missing XAudio2_8.dll
+	//m_pAudioEngine->Update();
+
 	//Reads players input
 	m_pPlayerInput->ReadInputStates();
 
 	XMMATRIX identity = XMMatrixIdentity();
-	RootNode->UpdateCollisionTree(&identity, 1.0f);
+	m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_A))
 	{
@@ -691,11 +705,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Strafe(-0.002f);
 
@@ -716,11 +730,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Strafe(0.002f);
 			
@@ -747,11 +761,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 		//Checks for collision with the present and if so moves the present to a new position
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pThirdPerson->Forward(-0.002f);
 			m_pCamera->Forward(-0.002f);
@@ -775,11 +789,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 		
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Forward(0.002f);
 			m_pThirdPerson->Forward(0.002f);
@@ -821,11 +835,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 		//Checks for collision with the present and if so moves the present to a new position
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pThirdPerson->Forward(-0.002f);
 			m_pCamera->Forward(-0.002f);
@@ -849,11 +863,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Forward(0.002f);
 			m_pThirdPerson->Forward(0.002f);
@@ -875,11 +889,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Strafe(0.002f);
 
@@ -902,11 +916,11 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), RootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), RootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 		}
 
-		if (RootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
+		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
 		{
 			m_pCamera->Strafe(-0.002f);
 
@@ -925,19 +939,6 @@ void GameManager::GameLogic()
 #pragma endregion
 
 
-	//Debug code
-	//if (m_pPlayerInput->IsKeyPressed(DIK_K))
-	//	m_pEnemyNode->IncXPos(0.001f, RootNode);
-
-	//if (m_pPlayerInput->IsKeyPressed(DIK_H))
-	//	m_pEnemyNode->IncXPos(-0.001f, RootNode);
-
-	//if (m_pPlayerInput->IsKeyPressed(DIK_J))
-	//	m_pEnemyNode->IncZPos(-0.001f, RootNode);
-
-	//if (m_pPlayerInput->IsKeyPressed(DIK_U))
-	//	m_pEnemyNode->IncZPos(0.001f, RootNode);
-
 	//if (m_pPlayerInput->IsKeyPressed(DIK_I))
 	//	m_pReflectiveCubeNode->IncRotX(0.01f, RootNode);
 
@@ -945,8 +946,8 @@ void GameManager::GameLogic()
 	xyz Lookat = m_pCamera->GetLookAt();
 
 	//Enemy "AI" that follows the player around
-	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), RootNode);
-	m_pEnemyNode->MoveForward(0.001f, RootNode);
+	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), m_pRootNode);
+	m_pEnemyNode->MoveForward(0.001f, m_pRootNode);
 
 
 	Lookat.x *= 0.002f;
@@ -972,9 +973,9 @@ void GameManager::GameLogic()
 	}*/
 
 	//Skybox code
-	m_pSkyboxNode->SetXPos(m_pCamera->GetX(), RootNode);
-	m_pSkyboxNode->SetYPos(m_pCamera->GetY(), RootNode);
-	m_pSkyboxNode->SetZPos(m_pCamera->GetZ(), RootNode);
+	m_pSkyboxNode->SetXPos(m_pCamera->GetX(), m_pRootNode);
+	m_pSkyboxNode->SetYPos(m_pCamera->GetY(), m_pRootNode);
+	m_pSkyboxNode->SetZPos(m_pCamera->GetZ(), m_pRootNode);
 
 	
 }

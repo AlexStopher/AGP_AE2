@@ -102,7 +102,7 @@ void MenuSystem::PauseMenu(Input* player)
 	{
 		m_Position++;
 	}
-	else if (player->IsKeyPressed(DIK_S) || player->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN)
+	else if ((player->IsKeyPressed(DIK_S) || player->IsButtonPressed(XINPUT_GAMEPAD_DPAD_DOWN))
 		&& m_Position > 0)
 	{
 		m_Position--;

@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <dxerr.h>
@@ -14,8 +16,11 @@
 #include "Math.h"
 #include <XInput.h>
 
+#include "Sprite.h"
+
 #define _XM_NO_INTRINSICS
 #define XM_NO_ALIGNMENT
+
 
 #include <xnamath.h>
 
@@ -39,8 +44,11 @@ private:
 
 	int		m_Score;
 
-	Text2D* m_2DText;
+	//UI Elements (Build a class for later)
+	Text2D* m_p2DText;
+	Sprite*	m_pUISprite;
 
+	//Cameras
 	Camera* m_pCamera;
 	Camera* m_pThirdPerson;
 
@@ -62,7 +70,7 @@ private:
 	Model*	  m_pObstacle4;
 
 	//SceneNodes for the game
-	SceneNode* RootNode;
+	SceneNode* m_pRootNode;
 	SceneNode* m_pEnemyNode;
 	SceneNode* m_pReflectiveCubeNode;
 	SceneNode* m_pSkyboxNode;
@@ -106,6 +114,8 @@ private:
 	ID3D11DepthStencilState*  m_pDepthWriteSolid = 0;
 	ID3D11DepthStencilState*  m_pDepthWriteSkyBox = 0;
 
+
+	//DirectX::AudioEngine*			  m_pAudioEngine;
 
 public:
 

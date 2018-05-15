@@ -43,7 +43,7 @@ Text2D::Text2D(string filename, ID3D11Device* device, ID3D11DeviceContext* conte
 	hr = pD3DDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &pVShader);
 	if(FAILED(hr)) exit(0);
 	
-	hr = pD3DDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &pPShader);
+	hr = pD3DDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &m_pPShader);
 	if(FAILED(hr)) exit(0);
 
 	// Create and set the input layout object
@@ -113,7 +113,6 @@ void Text2D::AddText(string s, float x, float y, float size)
 }
 
 // render all text at given positions
-// scope for improvement to add alpha blended text
 void Text2D::RenderText(void)
 {
 	int current_char = 0; // keep track of number of characters so far
@@ -213,7 +212,7 @@ void Text2D::RenderText(void)
 	pImmediateContext->PSSetSamplers(0, 1, &pSampler);
 	pImmediateContext->PSSetShaderResources(0, 1, &pTexture);
 	pImmediateContext->VSSetShader(pVShader, 0, 0);
-	pImmediateContext->PSSetShader(pPShader, 0, 0);
+	pImmediateContext->PSSetShader(m_pPShader, 0, 0);
 	pImmediateContext->IASetInputLayout(pInputLayout);
 
 	UINT stride = sizeof(POS_TEX_VERTEX);
@@ -240,7 +239,7 @@ Text2D::~Text2D(void)
 	if(pSampler) pSampler->Release();
 	if(pVertexBuffer) pVertexBuffer->Release();
 	if(pVShader) pVShader->Release();
-	if(pPShader) pPShader->Release();
+	if(m_pPShader) m_pPShader->Release();
 	if(pInputLayout) pInputLayout->Release();	
 
 }

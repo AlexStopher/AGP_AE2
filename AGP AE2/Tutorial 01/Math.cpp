@@ -156,5 +156,5 @@ bool Math::PointInTriangle(xyz* triangle1, xyz* triangle2, xyz* triangle3, xyz* 
 
 float Math::GetRandomNumber(int randomMax, int randomMin)
 {
-	return (double)rand() / (RAND_MAX + 1) * (randomMax - randomMin);
+	return (double)rand() / (RAND_MAX) * (randomMax - randomMin) + randomMin;
 }

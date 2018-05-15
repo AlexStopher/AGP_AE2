@@ -24,7 +24,7 @@ struct POS_TEX_VERTEX
 	XMFLOAT2 Texture;
 };
 
-// increase if more characters requird
+// increase if more characters required
 const int MAX_CHARACTERS = 10000;
 
 
@@ -43,7 +43,7 @@ private:
 	
 	ID3D11Buffer*			pVertexBuffer;          
 	ID3D11VertexShader*		pVShader;         
-	ID3D11PixelShader*		pPShader;          
+	ID3D11PixelShader*		m_pPShader;          
 	ID3D11InputLayout*		pInputLayout; 
  
 	ID3D11DepthStencilState* pDepthEnabledStencilState;		// state to turn on Z buffer

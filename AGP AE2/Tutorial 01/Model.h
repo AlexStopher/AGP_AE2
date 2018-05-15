@@ -5,7 +5,7 @@
 
 class Model
 {
-private:
+protected:
 
 	ID3D11Device*				m_pD3DDevice;
 	ID3D11DeviceContext*		m_pImmediateContext;
@@ -18,6 +18,8 @@ private:
 
 	ID3D11ShaderResourceView*	m_pTexture0;
 	ID3D11SamplerState*			m_pSampler0;
+
+
 
 	XMVECTOR					m_DirectionalLightVector;
 	XMVECTOR					m_PointLightPosition;
@@ -38,7 +40,7 @@ public:
 
 	
 
-	Model(ID3D11Device*, ID3D11DeviceContext*);
+	Model(ID3D11Device* D3DDevice, ID3D11DeviceContext* ImmediateContext);
 	~Model();
 
 	int LoadObjModel(char* filename); //Load the Obj file data

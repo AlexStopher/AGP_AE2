@@ -138,8 +138,8 @@ bool SceneNode::CheckCollision(SceneNode* node, SceneNode* rootNode)
 	
 
 		if (distanceSquared < pow((this->m_pModel->GetBoundingSphereRadius() * m_worldScale) +
-			(node->m_pModel->GetBoundingSphereRadius() * node->m_worldScale), 2) &&
-			this->m_canCollide == true && node->m_canCollide == true)
+			(node->m_pModel->GetBoundingSphereRadius() * node->m_worldScale), 2) 
+			&& (this->m_canCollide == true && node->m_canCollide == true))
 		{
 
 			//checks the node against the current object for collision
@@ -607,7 +607,7 @@ bool SceneNode::SetScale(float scale, SceneNode* rootNode)
 		return true;
 	}
 
-	m_pModel->CalculateBoundingSphereRadius();
+	m_pModel->CalculateBoundingSphereRadius(m_scale);
 
 	return false;
 }

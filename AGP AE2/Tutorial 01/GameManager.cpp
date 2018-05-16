@@ -1,6 +1,7 @@
 #include "GameManager.h"
 
 
+
 struct POS_COL_TEX_NORM_VERTEX
 {
 	XMFLOAT3 Pos;
@@ -433,11 +434,18 @@ HRESULT GameManager::InitialiseGraphics()
 //Creates the levels items and sets the values relevent for the,
 void GameManager::CreateLevel()
 {
-	//Initialization of the games models
+	//This is really inefficient and can be cleaned up, needed for larger levels.
+
+	//Initialization of the games models -
+#pragma region Environment Creation
+
+
+
 	m_pEnemy = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pEnemy->LoadObjModel("assets/wall.obj");
 	m_pEnemy->LoadShader("model_shaders.hlsl");
 	m_pEnemy->AddTexture("assets/UIpng.png");
+
 
 	m_pReflectiveCube = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pReflectiveCube->LoadObjModel("assets/cube.obj");
@@ -474,10 +482,18 @@ void GameManager::CreateLevel()
 	m_pFrontWall->LoadShader("model_shaders.hlsl");
 	m_pFrontWall->AddTexture("assets/texture.bmp");
 
+
+	//Back wall
+
 	m_pBackWall = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pBackWall->LoadObjModel("assets/wall.obj");
 	m_pBackWall->LoadShader("model_shaders.hlsl");
 	m_pBackWall->AddTexture("assets/texture.bmp");
+
+	m_pBackWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pBackWall2->LoadObjModel("assets/wall.obj");
+	m_pBackWall2->LoadShader("model_shaders.hlsl");
+	m_pBackWall2->AddTexture("assets/texture.bmp");
 
 	m_pObstacle1 = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pObstacle1->LoadObjModel("assets/cube.obj");
@@ -499,6 +515,8 @@ void GameManager::CreateLevel()
 	m_pObstacle4->LoadShader("model_shaders.hlsl");
 	m_pObstacle4->AddTexture("assets/texture.bmp");
 
+
+
 	//Initialization of the games SceneNodes
 	m_pRootNode = new SceneNode();
 	m_pEnemyNode = new SceneNode();
@@ -510,7 +528,19 @@ void GameManager::CreateLevel()
 	m_pLeftWallNode = new SceneNode();
 	m_pRightWallNode = new SceneNode();
 	m_pFrontWallNode = new SceneNode();
-    m_pBackWallNode = new SceneNode();
+
+    m_pBackWallNode1 = new SceneNode();
+	//m_pBackWallNode2 = new SceneNode();
+	//m_pBackWallNode3 = new SceneNode();
+	//m_pBackWallNode4 = new SceneNode();
+	//m_pBackWallNode5 = new SceneNode();
+	//m_pBackWallNode6 = new SceneNode();
+	//m_pBackWallNode7 = new SceneNode();
+	//m_pBackWallNode8 = new SceneNode();
+	//m_pBackWallNode9 = new SceneNode();
+
+
+
 	m_pObstacle1Node = new SceneNode();
 	m_pObstacle2Node = new SceneNode();
 	m_pObstacle3Node = new SceneNode();
@@ -524,7 +554,17 @@ void GameManager::CreateLevel()
 	m_pRootNode->AddChildNode(m_pRightWallNode);
 	m_pRootNode->AddChildNode(m_pLeftWallNode);
 	m_pRootNode->AddChildNode(m_pFrontWallNode);
-	m_pRootNode->AddChildNode(m_pBackWallNode);
+
+	m_pRootNode->AddChildNode(m_pBackWallNode1);
+	//m_pRootNode->AddChildNode(m_pBackWallNode2);
+	//m_pRootNode->AddChildNode(m_pBackWallNode3);
+	//m_pRootNode->AddChildNode(m_pBackWallNode4);
+	//m_pRootNode->AddChildNode(m_pBackWallNode5);
+	//m_pRootNode->AddChildNode(m_pBackWallNode6);
+	//m_pRootNode->AddChildNode(m_pBackWallNode7);
+	//m_pRootNode->AddChildNode(m_pBackWallNode8);
+	//m_pRootNode->AddChildNode(m_pBackWallNode9);
+
 	m_pRootNode->AddChildNode(m_pObstacle1Node);
 	m_pRootNode->AddChildNode(m_pObstacle2Node);
 	m_pRootNode->AddChildNode(m_pObstacle3Node);
@@ -540,12 +580,19 @@ void GameManager::CreateLevel()
 	m_pFrontWallNode->AddModel(m_pFrontWall);
 	m_pFrontWallNode->SetYPos(-45, m_pRootNode);
 	m_pFrontWallNode->SetScale(50, m_pRootNode);
-	
+	//m_pFrontWallNode->SetCanObjectCollide(false);
 
-	m_pBackWallNode->AddModel(m_pBackWall);
-	m_pBackWallNode->SetRotationX(-180, m_pRootNode);
-	m_pBackWallNode->SetYPos(-45, m_pRootNode);
-	m_pBackWallNode->SetScale(50, m_pRootNode);
+	//Back wall of the arena
+	m_pBackWallNode1->AddModel(m_pBackWall);
+	m_pBackWallNode1->SetRotationX(-180, m_pRootNode);
+	m_pBackWallNode1->SetZPos(-10.0f, m_pRootNode);
+	m_pBackWallNode1->SetXPos(0.0f, m_pRootNode);
+	m_pBackWallNode1->SetScale(2, m_pRootNode);
+
+	//m_pBackWallNode2->AddModel(m_pBackWall2);
+	//m_pBackWallNode2->SetRotationX(-180, m_pRootNode);
+	//m_pBackWallNode2->SetZPos(-20.0f, m_pRootNode);
+	//m_pBackWallNode1->SetXPos(-2.0f, m_pRootNode);
 
 	m_pRightWallNode->AddModel(m_pRightWall);
 	m_pRightWallNode->SetRotationY(-90, m_pRootNode);
@@ -584,23 +631,25 @@ void GameManager::CreateLevel()
 	//Static Objects
 	m_pObstacle1Node->AddModel(m_pObstacle1);
 	m_pObstacle1Node->SetXPos(-10, m_pRootNode);
-	m_pObstacle1Node->SetZPos(-10, m_pRootNode);
+	m_pObstacle1Node->SetZPos(10, m_pRootNode);
 	m_pObstacle1Node->SetRotationY(45, m_pRootNode);
 
-	m_pObstacle2Node->AddModel(m_pObstacle2);
+	m_pObstacle2Node->AddModel(m_pObstacle1);
 	m_pObstacle2Node->SetXPos(-10, m_pRootNode);
-	m_pObstacle2Node->SetZPos(10, m_pRootNode);
+	m_pObstacle2Node->SetZPos(-10, m_pRootNode);
 	m_pObstacle2Node->SetRotationY(45, m_pRootNode);
 
-	m_pObstacle3Node->AddModel(m_pObstacle3);
+	m_pObstacle3Node->AddModel(m_pObstacle1);
 	m_pObstacle3Node->SetXPos(10, m_pRootNode);
 	m_pObstacle3Node->SetZPos(10, m_pRootNode);
 	m_pObstacle3Node->SetRotationY(45, m_pRootNode);
 
-	m_pObstacle4Node->AddModel(m_pObstacle4);
+	m_pObstacle4Node->AddModel(m_pObstacle1);
 	m_pObstacle4Node->SetXPos(10, m_pRootNode);
 	m_pObstacle4Node->SetZPos(-10, m_pRootNode);
 	m_pObstacle4Node->SetRotationY(45, m_pRootNode);
+
+#pragma endregion
 
 	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
 	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
@@ -611,8 +660,6 @@ void GameManager::CreateLevel()
 
 	
 }
-
-//Render the frame "Main" update loop for the buffer
 void GameManager::RenderFrame(void)
 {
 
@@ -811,10 +858,12 @@ void GameManager::GameLogic()
 		m_pCamera->Rotate(m_pPlayerInput->GetMouseX() / 10);
 		//Rotate Y as well?
 	}
-	
 
 	//TODO - Add proper deadzones for the controller analogues
 #pragma region ControllerInput
+
+	
+
 
 	if (m_pPlayerInput->IsButtonPressed(XINPUT_GAMEPAD_START))
 		m_eGameState = ePauseMenu;
@@ -837,6 +886,10 @@ void GameManager::GameLogic()
 			m_Score += 100;
 			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			
+			Thread1 = thread([=] { m_pPlayerInput->SetControllerVibration(20000.0f, 20000.0f, 1.0f); });
+			Thread1.detach();
+
 		}
 		//Checks for collision with the present and if so moves the present to a new position
 		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
@@ -865,6 +918,9 @@ void GameManager::GameLogic()
 			m_Score += 100;
 			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+
+			Thread1 = thread([=] { m_pPlayerInput->SetControllerVibration(20000.0f, 20000.0f, 1.0f); });
+			Thread1.detach();
 		}
 
 		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
@@ -891,6 +947,9 @@ void GameManager::GameLogic()
 			m_Score += 100;
 			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+
+			Thread1 = thread([=] { m_pPlayerInput->SetControllerVibration(20000.0f, 20000.0f, 1.0f); });
+			Thread1.detach();
 		}
 
 		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
@@ -918,6 +977,9 @@ void GameManager::GameLogic()
 			m_Score += 100;
 			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
 			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+
+			Thread1 = thread([=] { m_pPlayerInput->SetControllerVibration(20000.0f, 20000.0f, 1.0f); });
+			Thread1.detach();
 		}
 
 		if (m_pRootNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, true) == true)
@@ -942,12 +1004,23 @@ void GameManager::GameLogic()
 	//if (m_pPlayerInput->IsKeyPressed(DIK_I))
 	//	m_pReflectiveCubeNode->IncRotX(0.01f, RootNode);
 
+	if (m_pPlayerInput->IsKeyPressed(DIK_K))
+		m_pObstacle1Node->IncXPos(0.01f, m_pRootNode);
+
+	if (m_pPlayerInput->IsKeyPressed(DIK_H))
+		m_pObstacle1Node->IncXPos(-0.01f, m_pRootNode);
+
+	if (m_pPlayerInput->IsKeyPressed(DIK_U))
+		m_pObstacle1Node->IncZPos(0.01f, m_pRootNode);
+
+	if (m_pPlayerInput->IsKeyPressed(DIK_J))
+		m_pObstacle1Node->IncZPos(-0.01f, m_pRootNode);
 
 	xyz Lookat = m_pCamera->GetLookAt();
 
 	//Enemy "AI" that follows the player around
-	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), m_pRootNode);
-	m_pEnemyNode->MoveForward(0.001f, m_pRootNode);
+	//m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), m_pRootNode);
+	//m_pEnemyNode->MoveForward(0.001f, m_pRootNode);
 
 
 	Lookat.x *= 0.002f;

@@ -92,7 +92,7 @@ xyz Math::PlaneIntersection(Plane* plane, xyz* point1, xyz* point2)
 	Ray.y = point2->y - point1->y;
 	Ray.z = point2->z - point1->z;
 
-	t = (-plane->d - DotProduct(&plane->normal, point1)) / DotProduct(&plane->normal, &Ray);
+	t = (-(plane->d) - DotProduct(&(plane->normal), point1)) / DotProduct(&(plane->normal), &Ray);
 
 
 	if (t < 0.0f || t > 1.0f)

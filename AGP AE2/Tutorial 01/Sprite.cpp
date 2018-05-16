@@ -121,7 +121,7 @@ void Sprite::SetPosition(float x, float y, float scale)
 
 void Sprite::Draw()
 {
-
+	//change this to draw the UI in one image, Make modular later
 	POS_TEX_VERTEXX vertices[] =
 	{
 		{XMFLOAT3(-0.5f, 0.5f, 5.0f), XMFLOAT2(0.0f, 0.0f)},

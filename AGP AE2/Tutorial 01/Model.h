@@ -60,6 +60,7 @@ public:
 
 	void CalculateModelCentrePoint();
 	void CalculateBoundingSphereRadius();
+	void CalculateBoundingSphereRadius(float scale);
 
 	float GetBoundingSphereRadius();
 	

@@ -2,6 +2,8 @@
 
 #include <dinput.h>
 #include <XInput.h>
+#include <mutex>
+
 
 
 class Input
@@ -15,12 +17,16 @@ private:
 
 	//IDirectInputDevice8*	m_pControllerDevice;
 	XINPUT_STATE			m_ControllerState;
-	
+	XINPUT_VIBRATION		m_VibrationState;
+
 
 	unsigned char			m_KeyboardKeyState[256];
 	//int						m_LastMouseX, m_LastMouseY;
 
+	std::mutex Mutex1;
+
 public:
+
 
 	Input();
 	~Input();
@@ -33,10 +39,12 @@ public:
 	void UpdateMouse();
 
 	float GetMouseX();
+
+	//Controller methods
 	float GetControllerLeftAnalogueX();
 	float GetControllerLeftAnalogueY();
 	float GetControllerRightAnalogueX();
 	float GetLeftStickDirection();
-
+	void  SetControllerVibration(float left, float right, float seconds);
 };
 

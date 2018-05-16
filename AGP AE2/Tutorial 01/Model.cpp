@@ -237,7 +237,7 @@ int Model::LoadShader(char* filename)
 void Model::CalculateModelCentrePoint()
 {
 	float minx = 0, maxx = 0, miny = 0, maxy = 0, minz = 0, maxz = 0;
-	//reuse code for own project, only do min and max to get a vector that allows to get the radius and the sphere as the radius function is unoptimal
+	//todo - only do min and max to get a vector that allows to get the radius and the sphere as the radius function is unoptimal
 	for (int i = 0; i < m_pObject->numverts; i++)
 	{
 		//check for min and max of x
@@ -280,6 +280,35 @@ void Model::CalculateModelCentrePoint()
 void Model::CalculateBoundingSphereRadius()
 {
 
+	float dz;
+	float dx;
+
+	float distance = 0;
+
+	for (int i = 0; i < m_pObject->numverts; i++)
+	{
+
+		dz = (m_pObject->vertices[i].Pos.z * m_scale);
+		dx = (m_pObject->vertices[i].Pos.x * m_scale);
+
+
+		float vertDist = sqrt((dz * dz) + (dx * dx));
+
+		if (vertDist > distance)
+		{
+			distance = vertDist;
+		}
+	}
+
+
+	m_bounding_sphere_radius = distance;
+
+}
+
+void Model::CalculateBoundingSphereRadius(float scale)
+{
+
+	m_scale = scale;
 	
 	float dz;
 	float dx;
@@ -289,8 +318,9 @@ void Model::CalculateBoundingSphereRadius()
 	for (int i = 0; i < m_pObject->numverts; i++)
 	{
 
-		dz = m_pObject->vertices[i].Pos.z - m_bounding_sphere_centre_z;
-		dx = m_pObject->vertices[i].Pos.x - m_bounding_sphere_centre_x;
+		dz = (m_pObject->vertices[i].Pos.z * m_scale);
+		dx = (m_pObject->vertices[i].Pos.x * m_scale);
+
 
 		float vertDist = sqrt((dz * dz) + (dx * dx));
 		
@@ -301,15 +331,10 @@ void Model::CalculateBoundingSphereRadius()
 	}
 
 	//BUG HERE
-	m_bounding_sphere_radius = distance;
+	this->m_bounding_sphere_radius = distance;
 
 }
 
-
-ObjFileModel* Model::GetModelObject()
-{
-	return m_pObject;
-}
 
 int Model::AddLighting()
 {
@@ -351,5 +376,11 @@ float Model::GetBoundingSphereY()
 float Model::GetBoundingSphereZ()
 {
 	return m_bounding_sphere_centre_z;
+
+}
+
+ObjFileModel* Model::GetModelObject()
+{
+	return m_pObject;
 }
 #pragma endregion

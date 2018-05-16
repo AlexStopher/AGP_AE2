@@ -7,6 +7,8 @@
 #include <dxerr.h>
 #include <stdio.h>
 #include <iostream>
+#include <thread>
+
 #include "Camera.h"
 #include "text2D.h"
 #include "Model.h"
@@ -24,6 +26,8 @@
 
 #include <xnamath.h>
 
+
+
 //Enum used for the state of the current game
 enum GameState
 {
@@ -38,6 +42,9 @@ enum GameState
 class GameManager
 {
 private:
+
+	thread Thread1;
+
 //instances of the windows handles and windows, used for initialization
 	HINSTANCE				m_hInst;
 	HWND					m_hWnd;
@@ -62,7 +69,8 @@ private:
 	Model*	  m_pLeftWall;
 	Model*	  m_pRightWall;
 	Model*	  m_pFrontWall;
-	Model*	  m_pBackWall;
+	Model*	  m_pBackWall;	
+	Model*	  m_pBackWall2;
 
 	Model*	  m_pObstacle1;
 	Model*	  m_pObstacle2;
@@ -80,7 +88,23 @@ private:
 	SceneNode* m_pLeftWallNode;
 	SceneNode* m_pRightWallNode;
 	SceneNode* m_pFrontWallNode;
-	SceneNode* m_pBackWallNode;
+
+	//Future cleanup
+	//vector<SceneNode*>	m_pBackWallSceneNode;
+
+	SceneNode* m_pBackWallNode1;
+	SceneNode* m_pBackWallNode2;
+	SceneNode* m_pBackWallNode3;
+	SceneNode* m_pBackWallNode4;
+	SceneNode* m_pBackWallNode5;
+	SceneNode* m_pBackWallNode6;
+	SceneNode* m_pBackWallNode7;
+	SceneNode* m_pBackWallNode8;
+	SceneNode* m_pBackWallNode9;
+
+
+
+
 	SceneNode* m_pObstacle1Node;
 	SceneNode* m_pObstacle2Node;
 	SceneNode* m_pObstacle3Node;

@@ -3,7 +3,7 @@
 
 Input::Input()
 {
-	
+
 
 }
 
@@ -72,6 +72,7 @@ HRESULT Input::InitialiseInput(HINSTANCE hInst, HWND hWnd)
 	//Setup of XInput controller 
 	ZeroMemory(&m_ControllerState, sizeof(m_ControllerState));
 	
+	ZeroMemory(&m_VibrationState, sizeof(m_VibrationState));
 
 	return S_OK;
 }
@@ -174,4 +175,21 @@ float Input::GetLeftStickDirection()
 	tempMagnitude = (tempLX * tempLX + tempLY * tempLY);
 
 	return tempMagnitude;
+}
+
+void Input::SetControllerVibration(float left, float right, float seconds)
+{
+	Mutex1.lock();
+
+	m_VibrationState.wLeftMotorSpeed = left;
+	m_VibrationState.wRightMotorSpeed = right;
+	XInputSetState(0, &m_VibrationState);
+
+	Sleep(seconds * 1000);
+
+	m_VibrationState.wLeftMotorSpeed = 0;
+	m_VibrationState.wRightMotorSpeed = 0;
+	XInputSetState(0, &m_VibrationState);
+
+	Mutex1.unlock();
 }

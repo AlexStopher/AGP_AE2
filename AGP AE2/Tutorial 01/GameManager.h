@@ -26,7 +26,7 @@
 
 #include <xnamath.h>
 
-
+//Main class that manages the game and contains important classes. Can be expanded on with a Level class to keep the scenenode/models clean and readable
 
 //Enum used for the state of the current game
 enum GameState
@@ -66,11 +66,141 @@ private:
 	Model*	  m_pPlayerModel;
 	Model*	  m_pPresent;
 	Model*	  m_pFloor;
-	Model*	  m_pLeftWall;
-	Model*	  m_pRightWall;
-	Model*	  m_pFrontWall;
-	Model*	  m_pBackWall;	
+
+	
+
+#pragma region FrontWall
+
+
+
+	Model*	  m_pFrontWall1;
+	Model*	  m_pFrontWall2;
+	Model*	  m_pFrontWall3;
+	Model*	  m_pFrontWall4;
+	Model*	  m_pFrontWall5;
+	Model*	  m_pFrontWall6;
+	Model*	  m_pFrontWall7;
+	Model*	  m_pFrontWall8;
+	Model*	  m_pFrontWall9;
+	Model*	  m_pFrontWall10;
+	Model*	  m_pFrontWall11;
+	Model*	  m_pFrontWall12;
+	Model*	  m_pFrontWall13;
+
+	SceneNode* m_pFrontWallNode1;
+	SceneNode* m_pFrontWallNode2;
+	SceneNode* m_pFrontWallNode3;
+	SceneNode* m_pFrontWallNode4;
+	SceneNode* m_pFrontWallNode5;
+	SceneNode* m_pFrontWallNode6;
+	SceneNode* m_pFrontWallNode7;
+	SceneNode* m_pFrontWallNode8;
+	SceneNode* m_pFrontWallNode9;
+	SceneNode* m_pFrontWallNode10;
+	SceneNode* m_pFrontWallNode11;
+	SceneNode* m_pFrontWallNode12;
+	SceneNode* m_pFrontWallNode13;
+
+#pragma endregion
+
+#pragma region RightWall
+
+	Model*	  m_pRightWall1;
+	Model*	  m_pRightWall2;
+	Model*	  m_pRightWall3;
+	Model*	  m_pRightWall4;
+	Model*	  m_pRightWall5;
+	Model*	  m_pRightWall6;
+	Model*	  m_pRightWall7;
+	Model*	  m_pRightWall8;
+	Model*	  m_pRightWall9;
+	Model*	  m_pRightWall10;
+	Model*	  m_pRightWall11;
+	Model*	  m_pRightWall12;
+	Model*	  m_pRightWall13;
+
+	SceneNode* m_pRightWallNode1;
+	SceneNode* m_pRightWallNode2;
+	SceneNode* m_pRightWallNode3;
+	SceneNode* m_pRightWallNode4;
+	SceneNode* m_pRightWallNode5;
+	SceneNode* m_pRightWallNode6;
+	SceneNode* m_pRightWallNode7;
+	SceneNode* m_pRightWallNode8;
+	SceneNode* m_pRightWallNode9;
+	SceneNode* m_pRightWallNode10;
+	SceneNode* m_pRightWallNode11;
+	SceneNode* m_pRightWallNode12;
+	SceneNode* m_pRightWallNode13;
+
+#pragma endregion
+
+#pragma region LeftWall
+
+	Model*	  m_pLeftWall1;
+	Model*	  m_pLeftWall2;
+	Model*	  m_pLeftWall3;
+	Model*	  m_pLeftWall4;
+	Model*	  m_pLeftWall5;
+	Model*	  m_pLeftWall6;
+	Model*	  m_pLeftWall7;
+	Model*	  m_pLeftWall8;
+	Model*	  m_pLeftWall9;
+	Model*	  m_pLeftWall10;
+	Model*	  m_pLeftWall11;
+	Model*	  m_pLeftWall12;
+	Model*	  m_pLeftWall13;
+
+	SceneNode* m_pLeftWallNode1;
+	SceneNode* m_pLeftWallNode2;
+	SceneNode* m_pLeftWallNode3;
+	SceneNode* m_pLeftWallNode4;
+	SceneNode* m_pLeftWallNode5;
+	SceneNode* m_pLeftWallNode6;
+	SceneNode* m_pLeftWallNode7;
+	SceneNode* m_pLeftWallNode8;
+	SceneNode* m_pLeftWallNode9;
+	SceneNode* m_pLeftWallNode10;
+	SceneNode* m_pLeftWallNode11;
+	SceneNode* m_pLeftWallNode12;
+	SceneNode* m_pLeftWallNode13;
+
+#pragma endregion
+
+#pragma region BackWall
+
+	Model*	  m_pBackWall;
 	Model*	  m_pBackWall2;
+	Model*	  m_pBackWall3;
+	Model*	  m_pBackWall4;
+	Model*	  m_pBackWall5;
+	Model*	  m_pBackWall6;
+	Model*	  m_pBackWall7;
+	Model*	  m_pBackWall8;
+	Model*	  m_pBackWall9;
+	Model*	  m_pBackWall10;
+	Model*	  m_pBackWall11;
+	Model*	  m_pBackWall12;
+	Model*	  m_pBackWall13;
+
+	SceneNode* m_pBackWallNode1;
+	SceneNode* m_pBackWallNode2;
+	SceneNode* m_pBackWallNode3;
+	SceneNode* m_pBackWallNode4;
+	SceneNode* m_pBackWallNode5;
+	SceneNode* m_pBackWallNode6;
+	SceneNode* m_pBackWallNode7;
+	SceneNode* m_pBackWallNode8;
+	SceneNode* m_pBackWallNode9;
+	SceneNode* m_pBackWallNode10;
+	SceneNode* m_pBackWallNode11;
+	SceneNode* m_pBackWallNode12;
+	SceneNode* m_pBackWallNode13;
+
+
+#pragma endregion
+
+	
 
 	Model*	  m_pObstacle1;
 	Model*	  m_pObstacle2;
@@ -85,22 +215,15 @@ private:
 	SceneNode* m_pPlayerNode;
 	SceneNode* m_pPresentNode;
 	SceneNode* m_pFloorNode;
-	SceneNode* m_pLeftWallNode;
-	SceneNode* m_pRightWallNode;
-	SceneNode* m_pFrontWallNode;
+
+
+	
 
 	//Future cleanup
 	//vector<SceneNode*>	m_pBackWallSceneNode;
 
-	SceneNode* m_pBackWallNode1;
-	SceneNode* m_pBackWallNode2;
-	SceneNode* m_pBackWallNode3;
-	SceneNode* m_pBackWallNode4;
-	SceneNode* m_pBackWallNode5;
-	SceneNode* m_pBackWallNode6;
-	SceneNode* m_pBackWallNode7;
-	SceneNode* m_pBackWallNode8;
-	SceneNode* m_pBackWallNode9;
+	
+
 
 
 

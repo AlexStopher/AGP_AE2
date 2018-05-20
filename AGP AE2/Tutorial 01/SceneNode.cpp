@@ -183,8 +183,11 @@ bool SceneNode::CheckCollision(SceneNode* node, SceneNode* rootNode)
 				Ray.y = point2.y - point1.y;
 				Ray.z = point2.z - point1.z;
 
-				Plane plane = Math::PlaneCreation(&point1, &point2, &point3);
+				Ray.x *= 0.1f;
+				Ray.y *= 0.1f;
+				Ray.z *= 0.1f;
 
+				//casts a ray from the current object to the object it potentially collided with
 				if (CheckRaycastCollision(point1, Ray, false) == true)
 				{
 					return true;
@@ -194,14 +197,22 @@ bool SceneNode::CheckCollision(SceneNode* node, SceneNode* rootNode)
 				Ray.y = point3.y - point2.y;
 				Ray.z = point3.z - point2.z;
 
+				Ray.x *= 0.1f;
+				Ray.y *= 0.1f;
+				Ray.z *= 0.1f;
+
 				if (CheckRaycastCollision(point2, Ray, false) == true)
 				{
 					return true;
 				}
 
-				Ray.x = point3.x - point2.x;
-				Ray.y = point3.y - point2.y;
-				Ray.z = point3.z - point2.z;
+				Ray.x = point1.x - point3.x;
+				Ray.y = point1.y - point3.y;
+				Ray.z = point1.z - point3.z;
+
+				Ray.x *= 0.1f;
+				Ray.y *= 0.1f;
+				Ray.z *= 0.1f;
 
 				if (CheckRaycastCollision(point3, Ray, false) == true)
 				{
@@ -252,6 +263,10 @@ bool SceneNode::CheckCollision(SceneNode* node, SceneNode* rootNode)
 				Ray.y = point2.y - point1.y;
 				Ray.z = point2.z - point1.z;
 
+				Ray.x *= 0.1f;
+				Ray.y *= 0.1f;
+				Ray.z *= 0.1f;
+
 				if (node->CheckRaycastCollision(point1, Ray, false) == true)
 				{
 					return true;
@@ -261,6 +276,10 @@ bool SceneNode::CheckCollision(SceneNode* node, SceneNode* rootNode)
 				Ray.y = point3.y - point2.y;
 				Ray.z = point3.z - point2.z;
 
+				Ray.x *= 0.1f;
+				Ray.y *= 0.1f;
+				Ray.z *= 0.1f;
+
 				if (node->CheckRaycastCollision(point2, Ray, false) == true)
 				{
 					return true;
@@ -269,6 +288,10 @@ bool SceneNode::CheckCollision(SceneNode* node, SceneNode* rootNode)
 				Ray.x = point1.x - point3.x;
 				Ray.y = point1.y - point3.y;
 				Ray.z = point1.z - point3.z;
+
+				Ray.x *= 0.1f;
+				Ray.y *= 0.1f;
+				Ray.z *= 0.1f;
 
 				if (node->CheckRaycastCollision(point3, Ray, false) == true)
 				{
@@ -607,6 +630,7 @@ bool SceneNode::SetScale(float scale, SceneNode* rootNode)
 		return true;
 	}
 
+	
 	m_pModel->CalculateBoundingSphereRadius(m_scale);
 
 	return false;

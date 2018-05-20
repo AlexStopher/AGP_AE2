@@ -271,9 +271,25 @@ void Model::CalculateModelCentrePoint()
 		}	
 	}
 
-	m_bounding_sphere_centre_x = (minx + maxx) / 2;
-	m_bounding_sphere_centre_y = (miny + maxy) / 2;
-	m_bounding_sphere_centre_z = (minz + maxz) / 2;
+	/*	m_bounding_sphere_centre_x = (minx + maxx) / 2;
+		m_bounding_sphere_centre_y = (miny + maxy) / 2;
+		m_bounding_sphere_centre_z = (minz + maxz) / 2;*/
+
+
+	if ((minx + maxx) == 0)
+		m_bounding_sphere_centre_x = 0;
+	else
+		m_bounding_sphere_centre_x = (minx + maxx) / 2;
+
+	if ((miny + maxy) == 0)
+		m_bounding_sphere_centre_y = 0;
+	else
+		m_bounding_sphere_centre_y = (miny + maxy) / 2;
+
+	if ((minz + maxz) == 0)
+		m_bounding_sphere_centre_z = 0;
+	else
+		m_bounding_sphere_centre_z = (minz + maxz) / 2;
 
 }
 
@@ -288,6 +304,7 @@ void Model::CalculateBoundingSphereRadius()
 	for (int i = 0; i < m_pObject->numverts; i++)
 	{
 
+
 		dz = (m_pObject->vertices[i].Pos.z * m_scale);
 		dx = (m_pObject->vertices[i].Pos.x * m_scale);
 
@@ -301,7 +318,7 @@ void Model::CalculateBoundingSphereRadius()
 	}
 
 
-	m_bounding_sphere_radius = distance;
+	this->m_bounding_sphere_radius = distance;
 
 }
 

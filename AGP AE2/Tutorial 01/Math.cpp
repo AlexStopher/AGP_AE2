@@ -20,6 +20,7 @@ float Math::DotProduct(xyz* u, xyz* v)
 	return temp;
 }
 
+
 xyz Math::CrossProduct(xyz* u, xyz* v)
 {
 	xyz CrossProd;
@@ -123,6 +124,7 @@ bool Math::PointInTriangle(xyz* triangle1, xyz* triangle2, xyz* triangle3, xyz* 
 	bc = (*triangle3 - *triangle2);
 	cp = (*point - *triangle3);
 	ca = (*triangle1 - *triangle3);
+
 
 	float AB, BC, CA;
 

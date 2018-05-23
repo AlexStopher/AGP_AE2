@@ -15,6 +15,9 @@ struct POS_COL_TEX_NORM_VERTEX
 GameManager::GameManager()
 {
 	m_pPlayerInput = new Input;
+	m_LevelLoaded = false;
+	m_LevelInitialised = false;
+	m_LoadingScreenDots = 0;
 }
 
 
@@ -198,9 +201,19 @@ HRESULT GameManager::InitialiseD3D()
 
 	pBackBufferTexture->Release();
 
-
-
 	if (FAILED(hr)) return hr;
+
+	//Add UI elements
+	m_p2DText = new Text2D("assets/font1.png", m_pD3DDevice, m_pImmediateContext);
+	m_pUISprite = new Sprite("assets/UIpng.png", m_pD3DDevice, m_pImmediateContext);
+	m_pUISprite->AddSprite("assets/UIpng2.png");
+
+	m_pLoadingScreenIcon = new Sprite("assets/LoadingIcon1.png", m_pD3DDevice, m_pImmediateContext);
+	m_pLoadingScreenIcon->AddSprite("assets/LoadingIcon2.png");
+	m_pLoadingScreenIcon->AddSprite("assets/LoadingIcon3.png");
+	m_pLoadingScreenIcon->AddSprite("assets/LoadingIcon4.png");
+
+
 
 	//Creates a Z Buffer texture
 
@@ -247,8 +260,7 @@ HRESULT GameManager::InitialiseD3D()
 
 	m_pImmediateContext->RSSetViewports(1, &viewport);
 
-	m_p2DText = new Text2D("assets/font1.png", m_pD3DDevice, m_pImmediateContext);
-	m_pUISprite = new Sprite("assets/UIpng.png", m_pD3DDevice, m_pImmediateContext);
+
 
 	//Creation of the Alpha Blend description
 	D3D11_BLEND_DESC b;
@@ -294,6 +306,8 @@ HRESULT GameManager::InitialiseD3D()
 	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	m_pD3DDevice->CreateDepthStencilState(&ds, &m_pDepthWriteSkyBox);
 
+
+
 	//Audio stuff
 
 	//ZeroMemory(&m_pAudioEngine, sizeof(m_pAudioEngine));
@@ -307,8 +321,11 @@ HRESULT GameManager::InitialiseGraphics()
 {
 	HRESULT hr = S_OK;
 
-	//Creates the level
-	CreateLevel();
+	//Creates a menu instance and sets the main menu up
+	m_pMenu = new MenuSystem(m_pD3DDevice, m_pImmediateContext);
+	m_pMenu->SetupMainMenu();
+
+
 
 
 	XMFLOAT3 vertices[] =
@@ -429,14 +446,18 @@ HRESULT GameManager::InitialiseGraphics()
 
 	return S_OK;
 
+
+
 }
 
 //Creates the levels items and sets the values relevent for the,
-void GameManager::CreateLevel()
+void GameManager::SetupLevelDatatypes()
 {
-	//This is really inefficient and unreadable, can be cleaned up in the future by reusing / managing vectors properly
+	//This is really inefficient and unreadable, can be cleaned up in the future by reusing / managing vectors properly.
+	//Main issue is with scene management collision detection, need to have a range check to store certain objects in an array 
+	//eg check the 5 closest objects only
 
-	//Initialization of the games models -
+	//Initialization of the games models 
 #pragma region Environment Creation
 
 
@@ -465,72 +486,75 @@ void GameManager::CreateLevel()
 	m_pFloor = new Model(m_pD3DDevice, m_pImmediateContext);
 	m_pFloor->LoadObjModel("assets/wallX.obj");
 	m_pFloor->LoadShader("model_shaders.hlsl");
-	m_pFloor->AddTexture("assets/texture.bmp");
+	m_pFloor->AddTexture("assets/RedCarpet.png");
+
+
+	//Left walls
 
 	m_pLeftWall1 = new Model(m_pD3DDevice, m_pImmediateContext);
-	m_pLeftWall1->LoadObjModel("assets/wallX.obj");
+	m_pLeftWall1->LoadObjModel("assets/wallZ.obj");
 	m_pLeftWall1->LoadShader("model_shaders.hlsl");
 	m_pLeftWall1->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall2->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall2->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall2->AddTexture("assets/texture.bmp");
+	m_pLeftWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall2->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall2->LoadShader("model_shaders.hlsl");
+	m_pLeftWall2->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall3 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall3->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall3->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall3->AddTexture("assets/texture.bmp");
+	m_pLeftWall3 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall3->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall3->LoadShader("model_shaders.hlsl");
+	m_pLeftWall3->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall4 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall4->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall4->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall4->AddTexture("assets/texture.bmp");
+	m_pLeftWall4 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall4->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall4->LoadShader("model_shaders.hlsl");
+	m_pLeftWall4->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall5 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall5->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall5->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall5->AddTexture("assets/texture.bmp");
+	m_pLeftWall5 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall5->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall5->LoadShader("model_shaders.hlsl");
+	m_pLeftWall5->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall6 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall6->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall6->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall6->AddTexture("assets/texture.bmp");
+	m_pLeftWall6 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall6->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall6->LoadShader("model_shaders.hlsl");
+	m_pLeftWall6->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall7 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall7->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall7->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall7->AddTexture("assets/texture.bmp");
+	m_pLeftWall7 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall7->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall7->LoadShader("model_shaders.hlsl");
+	m_pLeftWall7->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall8 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall8->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall8->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall8->AddTexture("assets/texture.bmp");
+	m_pLeftWall8 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall8->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall8->LoadShader("model_shaders.hlsl");
+	m_pLeftWall8->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall9 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall9->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall9->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall9->AddTexture("assets/texture.bmp");
+	m_pLeftWall9 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall9->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall9->LoadShader("model_shaders.hlsl");
+	m_pLeftWall9->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall10 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall10->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall10->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall10->AddTexture("assets/texture.bmp");
+	m_pLeftWall10 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall10->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall10->LoadShader("model_shaders.hlsl");
+	m_pLeftWall10->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall11->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall11->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall11->AddTexture("assets/texture.bmp");
+	m_pLeftWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall11->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall11->LoadShader("model_shaders.hlsl");
+	m_pLeftWall11->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall12 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall12->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall12->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall12->AddTexture("assets/texture.bmp");
+	m_pLeftWall12 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall12->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall12->LoadShader("model_shaders.hlsl");
+	m_pLeftWall12->AddTexture("assets/texture.bmp");
 
-	//m_pLeftWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pLeftWall13->LoadObjModel("assets/wallY.obj");
-	//m_pLeftWall13->LoadShader("model_shaders.hlsl");
-	//m_pLeftWall13->AddTexture("assets/texture.bmp");
+	m_pLeftWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pLeftWall13->LoadObjModel("assets/wallZ.obj");
+	m_pLeftWall13->LoadShader("model_shaders.hlsl");
+	m_pLeftWall13->AddTexture("assets/texture.bmp");
 
 	//Right wall
 
@@ -539,131 +563,131 @@ void GameManager::CreateLevel()
 	m_pRightWall1->LoadShader("model_shaders.hlsl");
 	m_pRightWall1->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall2->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall2->LoadShader("model_shaders.hlsl");
-	//m_pRightWall2->AddTexture("assets/texture.bmp");
+	m_pRightWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall2->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall2->LoadShader("model_shaders.hlsl");
+	m_pRightWall2->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall3= new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall3->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall3->LoadShader("model_shaders.hlsl");
-	//m_pRightWall3->AddTexture("assets/texture.bmp");
+	m_pRightWall3= new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall3->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall3->LoadShader("model_shaders.hlsl");
+	m_pRightWall3->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall4 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall4->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall4->LoadShader("model_shaders.hlsl");
-	//m_pRightWall4->AddTexture("assets/texture.bmp");
+	m_pRightWall4 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall4->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall4->LoadShader("model_shaders.hlsl");
+	m_pRightWall4->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall5 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall5->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall5->LoadShader("model_shaders.hlsl");
-	//m_pRightWall5->AddTexture("assets/texture.bmp");
+	m_pRightWall5 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall5->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall5->LoadShader("model_shaders.hlsl");
+	m_pRightWall5->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall6 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall6->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall6->LoadShader("model_shaders.hlsl");
-	//m_pRightWall6->AddTexture("assets/texture.bmp");
+	m_pRightWall6 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall6->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall6->LoadShader("model_shaders.hlsl");
+	m_pRightWall6->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall7 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall7->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall7->LoadShader("model_shaders.hlsl");
-	//m_pRightWall7->AddTexture("assets/texture.bmp");
+	m_pRightWall7 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall7->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall7->LoadShader("model_shaders.hlsl");
+	m_pRightWall7->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall8 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall8->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall8->LoadShader("model_shaders.hlsl");
-	//m_pRightWall8->AddTexture("assets/texture.bmp");
+	m_pRightWall8 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall8->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall8->LoadShader("model_shaders.hlsl");
+	m_pRightWall8->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall9 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall9->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall9->LoadShader("model_shaders.hlsl");
-	//m_pRightWall9->AddTexture("assets/texture.bmp");
+	m_pRightWall9 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall9->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall9->LoadShader("model_shaders.hlsl");
+	m_pRightWall9->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall10 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall10->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall10->LoadShader("model_shaders.hlsl");
-	//m_pRightWall10->AddTexture("assets/texture.bmp");
+	m_pRightWall10 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall10->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall10->LoadShader("model_shaders.hlsl");
+	m_pRightWall10->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall11->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall11->LoadShader("model_shaders.hlsl");
-	//m_pRightWall11->AddTexture("assets/texture.bmp");
+	m_pRightWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall11->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall11->LoadShader("model_shaders.hlsl");
+	m_pRightWall11->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall12 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall12->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall12->LoadShader("model_shaders.hlsl");
-	//m_pRightWall12->AddTexture("assets/texture.bmp");
+	m_pRightWall12 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall12->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall12->LoadShader("model_shaders.hlsl");
+	m_pRightWall12->AddTexture("assets/texture.bmp");
 
-	//m_pRightWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pRightWall13->LoadObjModel("assets/wallY.obj");
-	//m_pRightWall13->LoadShader("model_shaders.hlsl");
-	//m_pRightWall13->AddTexture("assets/texture.bmp");
+	m_pRightWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pRightWall13->LoadObjModel("assets/wallZ.obj");
+	m_pRightWall13->LoadShader("model_shaders.hlsl");
+	m_pRightWall13->AddTexture("assets/texture.bmp");
 
 	//front wall
 	m_pFrontWall1 = new Model(m_pD3DDevice, m_pImmediateContext);
-	m_pFrontWall1->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall1->LoadObjModel("assets/wallCorner.obj");
 	m_pFrontWall1->LoadShader("model_shaders.hlsl");
 	m_pFrontWall1->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall2->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall2->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall2->AddTexture("assets/texture.bmp");
+	m_pFrontWall2 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall2->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall2->LoadShader("model_shaders.hlsl");
+	m_pFrontWall2->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall3 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall3->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall3->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall3->AddTexture("assets/texture.bmp");
+	m_pFrontWall3 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall3->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall3->LoadShader("model_shaders.hlsl");
+	m_pFrontWall3->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall4 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall4->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall4->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall4->AddTexture("assets/texture.bmp");
+	m_pFrontWall4 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall4->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall4->LoadShader("model_shaders.hlsl");
+	m_pFrontWall4->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall5 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall5->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall5->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall5->AddTexture("assets/texture.bmp");
+	m_pFrontWall5 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall5->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall5->LoadShader("model_shaders.hlsl");
+	m_pFrontWall5->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall6 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall6->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall6->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall6->AddTexture("assets/texture.bmp");
+	m_pFrontWall6 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall6->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall6->LoadShader("model_shaders.hlsl");
+	m_pFrontWall6->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall7 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall7->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall7->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall7->AddTexture("assets/texture.bmp");
+	m_pFrontWall7 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall7->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall7->LoadShader("model_shaders.hlsl");
+	m_pFrontWall7->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall8 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall8->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall8->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall8->AddTexture("assets/texture.bmp");
+	m_pFrontWall8 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall8->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall8->LoadShader("model_shaders.hlsl");
+	m_pFrontWall8->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall9 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall9->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall9->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall9->AddTexture("assets/texture.bmp");
+	m_pFrontWall9 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall9->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall9->LoadShader("model_shaders.hlsl");
+	m_pFrontWall9->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall10 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall10->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall10->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall10->AddTexture("assets/texture.bmp");
+	m_pFrontWall10 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall10->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall10->LoadShader("model_shaders.hlsl");
+	m_pFrontWall10->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall11->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall11->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall11->AddTexture("assets/texture.bmp");
+	m_pFrontWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall11->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall11->LoadShader("model_shaders.hlsl");
+	m_pFrontWall11->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall12 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall12->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall12->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall12->AddTexture("assets/texture.bmp");
+	m_pFrontWall12 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall12->LoadObjModel("assets/wallX.obj");
+	m_pFrontWall12->LoadShader("model_shaders.hlsl");
+	m_pFrontWall12->AddTexture("assets/texture.bmp");
 
-	//m_pFrontWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
-	//m_pFrontWall13->LoadObjModel("assets/wallX.obj");
-	//m_pFrontWall13->LoadShader("model_shaders.hlsl");
-	//m_pFrontWall13->AddTexture("assets/texture.bmp");
+	m_pFrontWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
+	m_pFrontWall13->LoadObjModel("assets/wallCorner.obj");
+	m_pFrontWall13->LoadShader("model_shaders.hlsl");
+	m_pFrontWall13->AddTexture("assets/texture.bmp");
 
 
 	//Back wall
@@ -719,7 +743,7 @@ void GameManager::CreateLevel()
 	m_pBackWall10->AddTexture("assets/texture.bmp");
 
 	m_pBackWall11 = new Model(m_pD3DDevice, m_pImmediateContext);
-	m_pBackWall11->LoadObjModel("assets/wallX.obj");
+	m_pBackWall11->LoadObjModel("assets/wallCorner.obj");
 	m_pBackWall11->LoadShader("model_shaders.hlsl");
 	m_pBackWall11->AddTexture("assets/texture.bmp");
 
@@ -729,7 +753,7 @@ void GameManager::CreateLevel()
 	m_pBackWall12->AddTexture("assets/texture.bmp");
 
 	m_pBackWall13 = new Model(m_pD3DDevice, m_pImmediateContext);
-	m_pBackWall13->LoadObjModel("assets/wallX.obj");
+	m_pBackWall13->LoadObjModel("assets/wallCorner.obj");
 	m_pBackWall13->LoadShader("model_shaders.hlsl");
 	m_pBackWall13->AddTexture("assets/texture.bmp");
 
@@ -767,46 +791,46 @@ void GameManager::CreateLevel()
 	m_pFloorNode = new SceneNode(); 
 
 	m_pLeftWallNode1 = new SceneNode();
-	//m_pLeftWallNode2 = new SceneNode();
-	//m_pLeftWallNode3 = new SceneNode();
-	//m_pLeftWallNode4 = new SceneNode();
-	//m_pLeftWallNode5 = new SceneNode();
-	//m_pLeftWallNode6 = new SceneNode();
-	//m_pLeftWallNode7 = new SceneNode();
-	//m_pLeftWallNode8 = new SceneNode();
-	//m_pLeftWallNode9 = new SceneNode();
-	//m_pLeftWallNode10 = new SceneNode();
-	//m_pLeftWallNode11 = new SceneNode();
-	//m_pLeftWallNode12 = new SceneNode();
-	//m_pLeftWallNode13 = new SceneNode();
+	m_pLeftWallNode2 = new SceneNode();
+	m_pLeftWallNode3 = new SceneNode();
+	m_pLeftWallNode4 = new SceneNode();
+	m_pLeftWallNode5 = new SceneNode();
+	m_pLeftWallNode6 = new SceneNode();
+	m_pLeftWallNode7 = new SceneNode();
+	m_pLeftWallNode8 = new SceneNode();
+	m_pLeftWallNode9 = new SceneNode();
+	m_pLeftWallNode10 = new SceneNode();
+	m_pLeftWallNode11 = new SceneNode();
+	m_pLeftWallNode12 = new SceneNode();
+	m_pLeftWallNode13 = new SceneNode();
 
 	m_pRightWallNode1 = new SceneNode();
-	//m_pRightWallNode2 = new SceneNode();
-	//m_pRightWallNode3 = new SceneNode();
-	//m_pRightWallNode4 = new SceneNode();
-	//m_pRightWallNode5 = new SceneNode();
-	//m_pRightWallNode6 = new SceneNode();
-	//m_pRightWallNode7 = new SceneNode();
-	//m_pRightWallNode8 = new SceneNode();
-	//m_pRightWallNode9 = new SceneNode();
-	//m_pRightWallNode10 = new SceneNode();
-	//m_pRightWallNode11 = new SceneNode();
-	//m_pRightWallNode12 = new SceneNode();
-	//m_pRightWallNode13 = new SceneNode();
+	m_pRightWallNode2 = new SceneNode();
+	m_pRightWallNode3 = new SceneNode();
+	m_pRightWallNode4 = new SceneNode();
+	m_pRightWallNode5 = new SceneNode();
+	m_pRightWallNode6 = new SceneNode();
+	m_pRightWallNode7 = new SceneNode();
+	m_pRightWallNode8 = new SceneNode();
+	m_pRightWallNode9 = new SceneNode();
+	m_pRightWallNode10 = new SceneNode();
+	m_pRightWallNode11 = new SceneNode();
+	m_pRightWallNode12 = new SceneNode();
+	m_pRightWallNode13 = new SceneNode();
 
 	m_pFrontWallNode1 = new SceneNode();
-	//m_pFrontWallNode2 = new SceneNode();
-	//m_pFrontWallNode3 = new SceneNode();
-	//m_pFrontWallNode4 = new SceneNode();
-	//m_pFrontWallNode5 = new SceneNode();
-	//m_pFrontWallNode6 = new SceneNode();
-	//m_pFrontWallNode7 = new SceneNode();
-	//m_pFrontWallNode8 = new SceneNode();
-	//m_pFrontWallNode9 = new SceneNode();
-	//m_pFrontWallNode10 = new SceneNode();
-	//m_pFrontWallNode11 = new SceneNode();
-	//m_pFrontWallNode12 = new SceneNode();
-	//m_pFrontWallNode13 = new SceneNode();
+	m_pFrontWallNode2 = new SceneNode();
+	m_pFrontWallNode3 = new SceneNode();
+	m_pFrontWallNode4 = new SceneNode();
+	m_pFrontWallNode5 = new SceneNode();
+	m_pFrontWallNode6 = new SceneNode();
+	m_pFrontWallNode7 = new SceneNode();
+	m_pFrontWallNode8 = new SceneNode();
+	m_pFrontWallNode9 = new SceneNode();
+	m_pFrontWallNode10 = new SceneNode();
+	m_pFrontWallNode11 = new SceneNode();
+	m_pFrontWallNode12 = new SceneNode();
+	m_pFrontWallNode13 = new SceneNode();
 
     m_pBackWallNode1 = new SceneNode();
 	m_pBackWallNode2 = new SceneNode();
@@ -822,12 +846,21 @@ void GameManager::CreateLevel()
 	m_pBackWallNode12 = new SceneNode();
 	m_pBackWallNode13 = new SceneNode();
 
-
-
 	m_pObstacle1Node = new SceneNode();
 	m_pObstacle2Node = new SceneNode();
 	m_pObstacle3Node = new SceneNode();
 	m_pObstacle4Node = new SceneNode();
+
+#pragma endregion
+
+	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
+	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
+
+	m_LevelInitialised = true;
+}
+
+void GameManager::CreateLevel()
+{
 
 	//Adding all of the relevent Nodes to the RootNode for Scene management
 	m_pRootNode->AddChildNode(m_pEnemyNode);
@@ -836,47 +869,47 @@ void GameManager::CreateLevel()
 	m_pRootNode->AddChildNode(m_pFloorNode);
 
 	m_pRootNode->AddChildNode(m_pRightWallNode1);
-	//m_pRootNode->AddChildNode(m_pRightWallNode2);
-	//m_pRootNode->AddChildNode(m_pRightWallNode3);
-	//m_pRootNode->AddChildNode(m_pRightWallNode4);
-	//m_pRootNode->AddChildNode(m_pRightWallNode5);
-	//m_pRootNode->AddChildNode(m_pRightWallNode6);
-	//m_pRootNode->AddChildNode(m_pRightWallNode7);
-	//m_pRootNode->AddChildNode(m_pRightWallNode8);
-	//m_pRootNode->AddChildNode(m_pRightWallNode9);
-	//m_pRootNode->AddChildNode(m_pRightWallNode10);
-	//m_pRootNode->AddChildNode(m_pRightWallNode11);
-	//m_pRootNode->AddChildNode(m_pRightWallNode12);
-	//m_pRootNode->AddChildNode(m_pRightWallNode13);
+	m_pRootNode->AddChildNode(m_pRightWallNode2);
+	m_pRootNode->AddChildNode(m_pRightWallNode3);
+	m_pRootNode->AddChildNode(m_pRightWallNode4);
+	m_pRootNode->AddChildNode(m_pRightWallNode5);
+	m_pRootNode->AddChildNode(m_pRightWallNode6);
+	m_pRootNode->AddChildNode(m_pRightWallNode7);
+	m_pRootNode->AddChildNode(m_pRightWallNode8);
+	m_pRootNode->AddChildNode(m_pRightWallNode9);
+	m_pRootNode->AddChildNode(m_pRightWallNode10);
+	m_pRootNode->AddChildNode(m_pRightWallNode11);
+	m_pRootNode->AddChildNode(m_pRightWallNode12);
+	m_pRootNode->AddChildNode(m_pRightWallNode13);
 
 	m_pRootNode->AddChildNode(m_pLeftWallNode1);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode2);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode3);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode4);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode5);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode6);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode7);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode8);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode9);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode10);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode11);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode12);
-	//m_pRootNode->AddChildNode(m_pLeftWallNode13);
+	m_pRootNode->AddChildNode(m_pLeftWallNode2);
+	m_pRootNode->AddChildNode(m_pLeftWallNode3);
+	m_pRootNode->AddChildNode(m_pLeftWallNode4);
+	m_pRootNode->AddChildNode(m_pLeftWallNode5);
+	m_pRootNode->AddChildNode(m_pLeftWallNode6);
+	m_pRootNode->AddChildNode(m_pLeftWallNode7);
+	m_pRootNode->AddChildNode(m_pLeftWallNode8);
+	m_pRootNode->AddChildNode(m_pLeftWallNode9);
+	m_pRootNode->AddChildNode(m_pLeftWallNode10);
+	m_pRootNode->AddChildNode(m_pLeftWallNode11);
+	m_pRootNode->AddChildNode(m_pLeftWallNode12);
+	m_pRootNode->AddChildNode(m_pLeftWallNode13);
 
 
 	m_pRootNode->AddChildNode(m_pFrontWallNode1);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode2);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode3);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode4);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode5);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode6);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode7);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode8);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode9);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode10);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode11);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode12);
-	//m_pRootNode->AddChildNode(m_pFrontWallNode13);
+	m_pRootNode->AddChildNode(m_pFrontWallNode2);
+	m_pRootNode->AddChildNode(m_pFrontWallNode3);
+	m_pRootNode->AddChildNode(m_pFrontWallNode4);
+	m_pRootNode->AddChildNode(m_pFrontWallNode5);
+	m_pRootNode->AddChildNode(m_pFrontWallNode6);
+	m_pRootNode->AddChildNode(m_pFrontWallNode7);
+	m_pRootNode->AddChildNode(m_pFrontWallNode8);
+	m_pRootNode->AddChildNode(m_pFrontWallNode9);
+	m_pRootNode->AddChildNode(m_pFrontWallNode10);
+	m_pRootNode->AddChildNode(m_pFrontWallNode11);
+	m_pRootNode->AddChildNode(m_pFrontWallNode12);
+	m_pRootNode->AddChildNode(m_pFrontWallNode13);
 
 	m_pRootNode->AddChildNode(m_pBackWallNode1);
 	m_pRootNode->AddChildNode(m_pBackWallNode2);
@@ -904,109 +937,256 @@ void GameManager::CreateLevel()
 	m_pFloorNode->SetScale(50, m_pRootNode);
 	m_pFloorNode->SetCanObjectCollide(false);
 
+	//Front wall
+
 	m_pFrontWallNode1->AddModel(m_pFrontWall1);
-	m_pFrontWallNode1->SetYPos(-45, m_pRootNode);
-	m_pFrontWallNode1->SetScale(50, m_pRootNode);
-	m_pFrontWallNode1->SetCanObjectCollide(false);
+	m_pFrontWallNode1->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode1->SetXPos(-14.0f, m_pRootNode);
 
-	
-	//Back wall of the arena
+	m_pFrontWallNode13->AddModel(m_pFrontWall13);
+	m_pFrontWallNode13->SetRotationY(90, m_pRootNode);
+	m_pFrontWallNode13->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode13->SetXPos(10.0f, m_pRootNode);
 
-	m_pBackWallNode1->AddModel(m_pBackWall);
-	m_pBackWallNode1->SetRotationX(-180, m_pRootNode);
+	m_pFrontWallNode2->AddModel(m_pFrontWall2);
+	m_pFrontWallNode2->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode2->SetXPos(-12.0f, m_pRootNode);
+
+	m_pFrontWallNode3->AddModel(m_pFrontWall3);
+	m_pFrontWallNode3->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode3->SetXPos(-10.0f, m_pRootNode);
+
+	m_pFrontWallNode4->AddModel(m_pFrontWall4);
+	m_pFrontWallNode4->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode4->SetXPos(-8.0f, m_pRootNode);
+
+	m_pFrontWallNode5->AddModel(m_pFrontWall5);
+	m_pFrontWallNode5->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode5->SetXPos(-6.0f, m_pRootNode);
+
+	m_pFrontWallNode6->AddModel(m_pFrontWall6);
+	m_pFrontWallNode6->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode6->SetXPos(-4.0f, m_pRootNode);
+
+	m_pFrontWallNode7->AddModel(m_pFrontWall7);
+	m_pFrontWallNode7->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode7->SetXPos(-2.0f, m_pRootNode);
+
+	m_pFrontWallNode8->AddModel(m_pFrontWall8);
+	m_pFrontWallNode8->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode8->SetXPos(0.0f, m_pRootNode);
+
+	m_pFrontWallNode9->AddModel(m_pFrontWall9);
+	m_pFrontWallNode9->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode9->SetXPos(2.0f, m_pRootNode);
+
+	m_pFrontWallNode10->AddModel(m_pFrontWall10);
+	m_pFrontWallNode10->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode10->SetXPos(4.0f, m_pRootNode);
+
+	m_pFrontWallNode11->AddModel(m_pFrontWall11);
+	m_pFrontWallNode11->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode11->SetXPos(6.0f, m_pRootNode);
+
+	m_pFrontWallNode12->AddModel(m_pFrontWall12);
+	m_pFrontWallNode12->SetZPos(20.0f, m_pRootNode);
+	m_pFrontWallNode12->SetXPos(8.0f, m_pRootNode);
+
+
+
+	m_pBackWallNode1->AddModel(m_pBackWall);;
 	m_pBackWallNode1->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode1->SetXPos(-10.0f, m_pRootNode);
 
 	m_pBackWallNode2->AddModel(m_pBackWall2);
-	m_pBackWallNode2->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode2->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode2->SetXPos(-8.0f, m_pRootNode);
 
 	m_pBackWallNode3->AddModel(m_pBackWall3);
-	m_pBackWallNode3->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode3->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode3->SetXPos(-6.0f, m_pRootNode);
 
 	m_pBackWallNode4->AddModel(m_pBackWall4);
-	m_pBackWallNode4->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode4->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode4->SetXPos(-4.0f, m_pRootNode);
 
 	m_pBackWallNode5->AddModel(m_pBackWall5);
-	m_pBackWallNode5->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode5->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode5->SetXPos(-2.0f, m_pRootNode);
 
 	m_pBackWallNode6->AddModel(m_pBackWall6);
-	m_pBackWallNode6->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode6->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode6->SetXPos(0.0f, m_pRootNode);
 
 	m_pBackWallNode7->AddModel(m_pBackWall7);
-	m_pBackWallNode7->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode7->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode7->SetXPos(2.0f, m_pRootNode);
-	
+
 	m_pBackWallNode8->AddModel(m_pBackWall8);
-	m_pBackWallNode8->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode8->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode8->SetXPos(4.0f, m_pRootNode);
 
 	m_pBackWallNode9->AddModel(m_pBackWall9);
-	m_pBackWallNode9->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode9->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode9->SetXPos(6.0f, m_pRootNode);
 
 	m_pBackWallNode10->AddModel(m_pBackWall10);
-	m_pBackWallNode10->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode10->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode10->SetXPos(8.0f, m_pRootNode);
 
-	m_pBackWallNode11->AddModel(m_pBackWall11);
-	m_pBackWallNode11->SetRotationX(-180, m_pRootNode);
-	m_pBackWallNode11->SetZPos(-10.0f, m_pRootNode);
-	m_pBackWallNode11->SetXPos(10.0f, m_pRootNode);
-
 	m_pBackWallNode12->AddModel(m_pBackWall12);
-	m_pBackWallNode12->SetRotationX(-180, m_pRootNode);
 	m_pBackWallNode12->SetZPos(-10.0f, m_pRootNode);
 	m_pBackWallNode12->SetXPos(-12.0f, m_pRootNode);
 
+	//Bottom right corner
+	m_pBackWallNode11->AddModel(m_pBackWall11);
+	m_pBackWallNode11->SetRotationY(-180, m_pRootNode);
+	m_pBackWallNode11->SetZPos(-8.0f, m_pRootNode);
+	m_pBackWallNode11->SetXPos(10.0f, m_pRootNode);
+
+
+	//Bottom left corner
 	m_pBackWallNode13->AddModel(m_pBackWall13);
-	m_pBackWallNode12->SetRotationX(-180, m_pRootNode);
-	m_pBackWallNode13->SetZPos(-100.0f, m_pRootNode);
-	m_pBackWallNode13->SetXPos(-12.0f, m_pRootNode);
-	
+	m_pBackWallNode13->SetRotationY(-90, m_pRootNode);
+	m_pBackWallNode13->SetZPos(-8.0f, m_pRootNode);
+	m_pBackWallNode13->SetXPos(-14.0f, m_pRootNode);
 
 
+	//Right wall
 	m_pRightWallNode1->AddModel(m_pRightWall1);
-	//m_pRightWallNode1->SetRotationX (-180, m_pRootNode);
-	m_pRightWallNode1->SetZPos(-5.0f, m_pRootNode);
-	m_pRightWallNode1->SetXPos(-12.0f, m_pRootNode);
+	m_pRightWallNode1->SetZPos(-6.0f, m_pRootNode);
+	m_pRightWallNode1->SetXPos(11.0f, m_pRootNode);
 
+	m_pRightWallNode2->AddModel(m_pRightWall2);
+	m_pRightWallNode2->SetZPos(-4.0f, m_pRootNode);
+	m_pRightWallNode2->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode3->AddModel(m_pRightWall3);
+	m_pRightWallNode3->SetZPos(-2.0f, m_pRootNode);
+	m_pRightWallNode3->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode4->AddModel(m_pRightWall4);
+	m_pRightWallNode4->SetZPos(0.0f, m_pRootNode);
+	m_pRightWallNode4->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode5->AddModel(m_pRightWall5);
+	m_pRightWallNode5->SetZPos(2.0f, m_pRootNode);
+	m_pRightWallNode5->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode6->AddModel(m_pRightWall6);
+	m_pRightWallNode6->SetZPos(4.0f, m_pRootNode);
+	m_pRightWallNode6->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode7->AddModel(m_pRightWall7);
+	m_pRightWallNode7->SetZPos(6.0f, m_pRootNode);
+	m_pRightWallNode7->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode8->AddModel(m_pRightWall8);
+	m_pRightWallNode8->SetZPos(8.0f, m_pRootNode);
+	m_pRightWallNode8->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode9->AddModel(m_pRightWall9);
+	m_pRightWallNode9->SetZPos(10.0f, m_pRootNode);
+	m_pRightWallNode9->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode10->AddModel(m_pRightWall10);
+	m_pRightWallNode10->SetZPos(12.0f, m_pRootNode);
+	m_pRightWallNode10->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode11->AddModel(m_pRightWall11);
+	m_pRightWallNode11->SetZPos(14.0f, m_pRootNode);
+	m_pRightWallNode11->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode12->AddModel(m_pRightWall12);
+	m_pRightWallNode12->SetZPos(16.0f, m_pRootNode);
+	m_pRightWallNode12->SetXPos(11.0f, m_pRootNode);
+
+	m_pRightWallNode13->AddModel(m_pRightWall13);
+	m_pRightWallNode13->SetZPos(18.0f, m_pRootNode);
+	m_pRightWallNode13->SetXPos(11.0f, m_pRootNode);
+
+	//Left wall
 
 	m_pLeftWallNode1->AddModel(m_pLeftWall1);
-	m_pLeftWallNode1->SetRotationY(90, m_pRootNode);
-	m_pLeftWallNode1->SetYPos(-45, m_pRootNode);
-	m_pLeftWallNode1->SetXPos(-100, m_pRootNode);
-	m_pLeftWallNode1->SetScale(50, m_pRootNode);
-	m_pLeftWallNode1->SetCanObjectCollide(false);
+	m_pLeftWallNode1->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode1->SetZPos(-6.0f, m_pRootNode);
+	m_pLeftWallNode1->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode2->AddModel(m_pLeftWall2);
+	m_pLeftWallNode2->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode2->SetZPos(-4.0f, m_pRootNode);
+	m_pLeftWallNode2->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode3->AddModel(m_pLeftWall3);
+	m_pLeftWallNode3->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode3->SetZPos(-2.0f, m_pRootNode);
+	m_pLeftWallNode3->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode4->AddModel(m_pLeftWall4);
+	m_pLeftWallNode4->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode4->SetZPos(0.0f, m_pRootNode);
+	m_pLeftWallNode4->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode5->AddModel(m_pLeftWall5);
+	m_pLeftWallNode5->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode5->SetZPos(2.0f, m_pRootNode);
+	m_pLeftWallNode5->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode6->AddModel(m_pLeftWall6);
+	m_pLeftWallNode6->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode6->SetZPos(4.0f, m_pRootNode);
+	m_pLeftWallNode6->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode7->AddModel(m_pLeftWall7);
+	m_pLeftWallNode7->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode7->SetZPos(6.0f, m_pRootNode);
+	m_pLeftWallNode7->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode8->AddModel(m_pLeftWall8);
+	m_pLeftWallNode8->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode8->SetZPos(8.0f, m_pRootNode);
+	m_pLeftWallNode8->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode9->AddModel(m_pLeftWall9);
+	m_pLeftWallNode9->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode9->SetZPos(10.0f, m_pRootNode);
+	m_pLeftWallNode9->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode10->AddModel(m_pLeftWall10);
+	m_pLeftWallNode10->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode10->SetZPos(12.0f, m_pRootNode);
+	m_pLeftWallNode10->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode11->AddModel(m_pLeftWall11);
+	m_pLeftWallNode11->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode11->SetZPos(14.0f, m_pRootNode);
+	m_pLeftWallNode11->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode12->AddModel(m_pLeftWall12);
+	m_pLeftWallNode12->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode12->SetZPos(16.0f, m_pRootNode);
+	m_pLeftWallNode12->SetXPos(-15.0f, m_pRootNode);
+
+	m_pLeftWallNode13->AddModel(m_pLeftWall13);
+	m_pLeftWallNode13->SetRotationY(180, m_pRootNode);
+	m_pLeftWallNode13->SetZPos(18.0f, m_pRootNode);
+	m_pLeftWallNode13->SetXPos(-15.0f, m_pRootNode);
 
 	//Interactables
 	m_pEnemyNode->AddModel(m_pEnemy);
 	m_pReflectiveCubeNode->AddModel(m_pReflectiveCube);
 	m_pPresentNode->AddModel(m_pPresent);
 
-	m_pEnemyNode->SetZPos(30.0f, m_pRootNode);
+	m_pEnemyNode->SetZPos(10.0f, m_pRootNode);
 	m_pReflectiveCubeNode->SetZPos(10.0f, m_pRootNode);
 	m_pReflectiveCubeNode->SetXPos(0.0f, m_pRootNode);
-	m_pReflectiveCubeNode->SetYPos(3.0f, m_pRootNode);
+	m_pReflectiveCubeNode->SetYPos(4.0f, m_pRootNode);
 
 
 	m_pPresentNode->SetZPos(5.0f, m_pRootNode);
 	m_pPresentNode->SetXPos(5.0f, m_pRootNode);
 	m_pPresentNode->SetScale(0.6f, m_pRootNode);
-	
+
 
 	m_pSkyboxNode->AddModel(m_pSkybox);
 	m_pSkyboxNode->SetCanObjectCollide(false);
@@ -1016,7 +1196,7 @@ void GameManager::CreateLevel()
 	m_pObstacle1Node->AddModel(m_pObstacle1);
 	m_pObstacle1Node->SetXPos(-10, m_pRootNode);
 	m_pObstacle1Node->SetZPos(10, m_pRootNode);
-	//m_pObstacle1Node->SetRotationY(45, m_pRootNode);
+	m_pObstacle1Node->SetRotationY(45, m_pRootNode);
 
 	m_pObstacle2Node->AddModel(m_pObstacle1);
 	m_pObstacle2Node->SetXPos(-10, m_pRootNode);
@@ -1025,25 +1205,18 @@ void GameManager::CreateLevel()
 
 	m_pObstacle3Node->AddModel(m_pObstacle1);
 	m_pObstacle3Node->SetXPos(10, m_pRootNode);
-	m_pObstacle3Node->SetZPos(10, m_pRootNode);
+	m_pObstacle3Node->SetZPos(1000, m_pRootNode);
 	m_pObstacle3Node->SetRotationY(45, m_pRootNode);
 
 	m_pObstacle4Node->AddModel(m_pObstacle1);
 	m_pObstacle4Node->SetXPos(10, m_pRootNode);
-	m_pObstacle4Node->SetZPos(-100, m_pRootNode);
+	m_pObstacle4Node->SetZPos(-1000, m_pRootNode);
 	m_pObstacle4Node->SetRotationY(45, m_pRootNode);
 
-#pragma endregion
-
-	m_pCamera = new Camera(0.0f, 0.0f, 0.0, 0.0f);
-	m_pThirdPerson = new Camera(-3.0f, 1.0f, 0.0f, 0.0f);
-	
-	//Creates a menu instance and sets the main menu up
-	m_pMenu = new MenuSystem(m_pD3DDevice, m_pImmediateContext);
-	m_pMenu->SetupMainMenu();
-
-	
+	m_LevelLoaded = true;
 }
+
+
 void GameManager::RenderFrame(void)
 {
 
@@ -1073,16 +1246,57 @@ void GameManager::RenderFrame(void)
 	view = m_pCamera->GetViewMatrix();
 
 	//Lighting for the world and objects
-	m_pEnemy->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-	m_pReflectiveCube->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pEnemy->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
+	m_pReflectiveCube->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
+
 	m_pFrontWall1->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall2->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall3->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall4->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall5->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall6->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall7->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall8->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall9->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall10->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall11->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall12->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
+	m_pFrontWall13->SetDirectionalLight(0.0f, 0.0f, 1.0f, 0.0f);
 
-	m_pObstacle1->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-	m_pObstacle2->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-	m_pObstacle3->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
-	m_pObstacle4->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pRightWall1->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall2->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall3->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall4->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall5->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall6->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall7->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall8->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall9->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall10->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall11->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall12->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
+	m_pRightWall13->SetDirectionalLight(0.1f, 0.0f, 0.9f, 0.0f);
 
-	m_pPresent->SetDirectionalLight(0.0f, 0.0f, -1.0f, 0.0f);
+	m_pLeftWall1->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall2->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall3->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall4->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall5->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall6->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall7->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall8->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall9->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall10->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall11->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall12->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+	m_pLeftWall13->SetDirectionalLight(-0.1f, 0.0f, 0.9f, 0.0f);
+
+	m_pObstacle1->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
+	m_pObstacle2->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
+	m_pObstacle3->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
+	m_pObstacle4->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
+
+	m_pPresent->SetDirectionalLight(0.0f, 0.5f, -1.0f, 0.0f);
 	m_pPresent->SetPointLight(0.0f, 10.0f, 0.0f, 0.0f);
 	m_pPresent->SetPointLightColour(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -1103,10 +1317,10 @@ void GameManager::RenderFrame(void)
 	//Renders text after enabling the alpha channel
 	m_pImmediateContext->OMSetBlendState(m_pBlendAlphaEnable, 0, 0xffffffff);
 	m_p2DText->RenderText();
-	//m_pUISprite->Draw();
+	
 	m_pImmediateContext->OMSetBlendState(m_pBlendAlphaDisable, 0, 0xffffffff);
 
-
+	//m_pLoadingScreenIcon->Draw();
 
 	m_pSwapChain->Present(0, 0);
 }
@@ -1127,9 +1341,9 @@ void GameManager::GameLogic()
 
 		xyz Lookat = m_pCamera->GetCameraRight();
 
-		Lookat.x *= -0.008f;
-		Lookat.y *= -0.008f;
-		Lookat.z *= -0.008f;
+		Lookat.x *= 0.1f;
+		Lookat.y *= 0.1f;
+		Lookat.z *= 0.1f;
 
 
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
@@ -1153,9 +1367,9 @@ void GameManager::GameLogic()
 
 		xyz Lookat = m_pCamera->GetCameraRight();
 
-		Lookat.x *= 0.008f;
-		Lookat.y *= 0.008f;
-		Lookat.z *= 0.008f;
+		Lookat.x *= 0.1f;
+		Lookat.y *= 0.1f;
+		Lookat.z *= 0.1f;
 
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
@@ -1183,9 +1397,9 @@ void GameManager::GameLogic()
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= 0.008f;
-		Lookat.y *= 0.008f;
-		Lookat.z *= 0.008f;
+		Lookat.x *= 0.1f;
+		Lookat.y *= 0.1f;
+		Lookat.z *= 0.1f;
 
 		//Checks for a collision with an object and reverses the movement if so
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
@@ -1212,9 +1426,9 @@ void GameManager::GameLogic()
 
 		xyz Lookat = m_pCamera->GetLookAt();
 
-		Lookat.x *= -0.008f;
-		Lookat.y *= -0.008f;
-		Lookat.z *= -0.008f;
+		Lookat.x *= 0.1f;
+		Lookat.y *= 0.1f;
+		Lookat.z *= 0.1f;
 
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
@@ -1358,8 +1572,8 @@ void GameManager::GameLogic()
 		if (m_pPresentNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 		{
 			m_Score += 100;
-			m_pPresentNode->SetXPos(Math::GetRandomNumber(10, -10), m_pRootNode);
-			m_pPresentNode->SetZPos(Math::GetRandomNumber(10, -10), m_pRootNode);
+			m_pPresentNode->SetXPos(Math::GetRandomNumber(14, -8), m_pRootNode);
+			m_pPresentNode->SetZPos(Math::GetRandomNumber(14, -8), m_pRootNode);
 
 			Thread1 = thread([=] { m_pPlayerInput->SetControllerVibration(20000.0f, 20000.0f, 1.0f); });
 			Thread1.detach();
@@ -1374,36 +1588,35 @@ void GameManager::GameLogic()
 
 	if (m_pPlayerInput->GetControllerRightAnalogueX() >= 20000.0f)
 	{
-		m_pCamera->Rotate(0.502f);
+		m_pCamera->Rotate(0.102f);
 	}
 	else if (m_pPlayerInput->GetControllerRightAnalogueX() <= -20000.0f)
 	{
-		m_pCamera->Rotate(-0.502f);
+		m_pCamera->Rotate(-0.102f);
 	}
 
 #pragma endregion
 
 
-	//if (m_pPlayerInput->IsKeyPressed(DIK_I))
-	//	m_pReflectiveCubeNode->IncRotX(0.01f, RootNode);
+	//Debug/Testing for collision
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_K))
-		m_pObstacle1Node->IncXPos(0.01f, m_pRootNode);
+		m_pBackWallNode13->IncXPos(0.01f, m_pRootNode);
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_H))
-		m_pObstacle1Node->IncXPos(-0.01f, m_pRootNode);
+		m_pBackWallNode13->IncXPos(-0.01f, m_pRootNode);
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_U))
-		m_pObstacle1Node->IncZPos(0.01f, m_pRootNode);
+		m_pBackWallNode13->IncRotY(0.01f, m_pRootNode);
 
 	if (m_pPlayerInput->IsKeyPressed(DIK_J))
-		m_pObstacle1Node->IncZPos(-0.01f, m_pRootNode);
+		m_pBackWallNode13->IncRotY(-0.01f, m_pRootNode);
 
 	xyz Lookat = m_pCamera->GetLookAt();
 
 	//Enemy "AI" that follows the player around
-	//m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), m_pRootNode);
-	//m_pEnemyNode->MoveForward(0.001f, m_pRootNode);
+	m_pEnemyNode->LookAtXYZ(m_pCamera->GetX(), m_pCamera->GetY(), m_pCamera->GetZ(), m_pRootNode);
+	m_pEnemyNode->MoveForward(0.001f, m_pRootNode);
 
 
 	Lookat.x *= 0.002f;
@@ -1411,21 +1624,20 @@ void GameManager::GameLogic()
 	Lookat.z *= 0.002f;
 
 	//ends the game if the enemy catches up with the player or the player earns 1000 points
-	/*if (m_pEnemyNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
+	if (m_pEnemyNode->CheckRaycastCollision(m_pCamera->GetCameraPos(), Lookat, false) == true)
 	{
-
 		m_eGameState = eEndGame;
 	}
 	else if (m_Score >= 1000)
 	{
 		m_eGameState = eEndGame;
-	}*/
+	}
 
-	/*xyz PresentPos(m_pPresentNode->GetXPos(), m_pPresentNode->GetYPos(), m_pPresentNode->GetZPos());
+	xyz PresentPos(m_pPresentNode->GetXPos(), m_pPresentNode->GetYPos(), m_pPresentNode->GetZPos());
 
-	if (m_pEnemyNode->CheckRaycastCollision(PresentPos, Lookat, false) == true)
+	/*if (m_pEnemyNode->CheckRaycastCollision(PresentPos, Lookat, false) == true)
 	{
-		
+		m_pEnemyNode->MoveForward(0.001f, false, m_pRootNode);
 	}*/
 
 	//Skybox code
@@ -1445,14 +1657,16 @@ void GameManager::MainMenu()
 
 	m_pMenu->MainMenuLoop(m_pPlayerInput);
 	m_pSwapChain->Present(0, 0);
-
+	
 	if (m_pMenu->m_ePlayerSelection == eQuit && m_pMenu->GetSelection() == true)
 	{
 		m_eGameState = eEndGame;
 	}
 	else if (m_pMenu->m_ePlayerSelection == eStartGame && m_pMenu->GetSelection() == true)
 	{
-		m_eGameState = eInGame;
+		m_eGameState = eLoading;
+		//SetupLevelDatatypes(); CreateLevel();
+		
 	}
 
 }
@@ -1476,4 +1690,44 @@ void GameManager::PauseMenu()
 		m_eGameState = eInGame;
 	}
 
+}
+
+void GameManager::LoadingScreen()
+{
+	//Placeholder until the loading sprite works properly, add in code to slow down the animation as well
+	float rgba_clear_colour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, rgba_clear_colour);
+
+	if (m_LoadingScreenDots == 0)
+	{
+		m_p2DText->AddText("Loading", -1.0f, -0.7f, 0.1f);
+		m_LoadingScreenDots++;
+	}
+	else if (m_LoadingScreenDots == 1)
+	{
+		m_p2DText->AddText("Loading.", -1.0f, -0.7f, 0.1f);
+		m_LoadingScreenDots++;
+	}
+	else if (m_LoadingScreenDots == 2)
+	{
+		m_p2DText->AddText("Loading..", -1.0f, -0.7f, 0.1f);
+		m_LoadingScreenDots++;
+	}
+	else if (m_LoadingScreenDots == 3)
+	{
+		m_p2DText->AddText("Loading...", -1.0f, -0.7f, 0.1f);
+		m_LoadingScreenDots = 0;
+	}
+
+	m_p2DText->RenderText();
+
+	m_pSwapChain->Present(0, 0);
+
+	if (m_LevelInitialised == true && m_LevelLoaded == true)
+		m_eGameState = eInGame;
+
+	//This doesnt work for an actual loading screen, figure out how multithreading works properly for WINAPI
+	Thread1 = thread([=] { SetupLevelDatatypes(); CreateLevel(); });
+	Thread1.join();
 }

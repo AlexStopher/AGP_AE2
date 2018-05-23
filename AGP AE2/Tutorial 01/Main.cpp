@@ -74,6 +74,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//Pause menu
 			p_Game->PauseMenu();
 		}
+		else if (p_Game->m_eGameState == eLoading)
+		{
+			p_Game->LoadingScreen();
+		}
 
 		if (p_Game->m_eGameState == eEndGame)
 		{

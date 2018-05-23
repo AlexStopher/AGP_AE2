@@ -93,8 +93,8 @@ d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathconvert.
 d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathmisc.inl(518): warning C4838: conversion from 'unsigned int' to 'INT' requires a narrowing conversion
 d:\program files (x86)\microsoft directx sdk (june 2010)\include\xnamathmisc.inl(519): warning C4838: conversion from 'unsigned int' to 'INT' requires a narrowing conversion
   d:\program files (x86)\microsoft directx sdk (june 2010)\include\dinput.h: DIRECTINPUT_VERSION undefined. Defaulting to version 0x0800
-d:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(243): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
-d:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(244): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
+d:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(256): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
+d:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp(257): warning C4244: '=': conversion from 'UINT' to 'FLOAT', possible loss of data
 LINK : warning C4742: 'struct XMVECTORF32 const g_XMAddDec4' has different alignment in 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\menusystem.cpp' and 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp': 4 and 16
 LINK : warning C4744: 'struct XMVECTORF32 const g_XMAddDec4' has different type in 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\menusystem.cpp' and 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp': 'union (16 bytes)' and '__declspec(align(16)) union (16 bytes)'
 LINK : warning C4742: 'struct XMVECTORI32 const g_XMXorHenD3' has different alignment in 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\menusystem.cpp' and 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp': 4 and 16
@@ -1596,8 +1596,8 @@ LINK : warning C4744: 'struct XMVECTORI32 const g_XMFltMin' has different type i
 LINK : warning C4742: 'struct XMVECTORI32 const g_XMSelect1100' has different alignment in 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\text2d.cpp' and 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp': 4 and 16
 LINK : warning C4744: 'struct XMVECTORI32 const g_XMSelect1100' has different type in 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\text2d.cpp' and 'd:\users\angel\documents\github\agp_ae2\agp ae2\tutorial 01\gamemanager.cpp': 'union (16 bytes)' and '__declspec(align(16)) union (16 bytes)'
   Generating code
-  1 of 757 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  1 of 864 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    6 functions had inline decision re-evaluated but remain unchanged
+    7 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Tutorial 01.vcxproj -> D:\Users\Angel\Documents\GitHub\AGP_AE2\AGP AE2\x64\Release\Tutorial 01.exe

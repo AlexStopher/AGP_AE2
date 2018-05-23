@@ -6,11 +6,10 @@ Sprite::Sprite(char* filename, ID3D11Device* D3DDevice, ID3D11DeviceContext* Imm
 	m_pD3DDevice = D3DDevice;
 	m_pImmediateContext = ImmediateContext;
 	m_pTextureFilename = filename;
-
 	m_ScreenHeight = 800;
 	m_ScreenWidth = 1280;
-
-
+	m_SpritePosition = 0;
+	ID3D11ShaderResourceView* temp;
 
 		
 	//Set up and create vertex buffer
@@ -63,8 +62,10 @@ Sprite::Sprite(char* filename, ID3D11Device* D3DDevice, ID3D11DeviceContext* Imm
 	if (FAILED(hr)) exit(0);
 
 	// Load in the texture from given filename
-	hr = D3DX11CreateShaderResourceViewFromFile(D3DDevice, filename, NULL, NULL, &m_pTexture0, NULL);
+	hr = D3DX11CreateShaderResourceViewFromFile(D3DDevice, filename, NULL, NULL, &temp, NULL);
 	if (FAILED(hr)) exit(0);
+
+	m_pTextures.push_back(temp);
 
 	// Create sampler for texture
 	D3D11_SAMPLER_DESC sampler_desc;
@@ -96,11 +97,11 @@ Sprite::Sprite(char* filename, ID3D11Device* D3DDevice, ID3D11DeviceContext* Imm
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	hr = D3DDevice->CreateDepthStencilState(&depthStencilDesc, &pDepthDisabledStencilState);
+	hr = D3DDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthDisabledStencilState);
 	if (FAILED(hr)) exit(0);
 
 	depthStencilDesc.DepthEnable = true;
-	hr = D3DDevice->CreateDepthStencilState(&depthStencilDesc, &pDepthEnabledStencilState);
+	hr = D3DDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthEnabledStencilState);
 	if (FAILED(hr)) exit(0);
 
 
@@ -109,14 +110,19 @@ Sprite::Sprite(char* filename, ID3D11Device* D3DDevice, ID3D11DeviceContext* Imm
 
 Sprite::~Sprite()
 {
-
+	m_pDepthDisabledStencilState->Release();
+	m_pDepthEnabledStencilState->Release();
+	
 }
 
-void Sprite::SetPosition(float x, float y, float scale)
+void Sprite::AddSprite(char* filename)
 {
-	imagePos.x = x;
-	imagePos.y = y;
-	imagePos.scale = scale;
+	ID3D11ShaderResourceView* temp;
+
+	D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice, filename, NULL, NULL, &temp, NULL);
+	m_pTextures.push_back(temp);
+
+
 }
 
 void Sprite::Draw()
@@ -143,22 +149,28 @@ void Sprite::Draw()
 
 	// set all rendering states
 	m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampler0);
-	m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTexture0);
+
+	m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextures[m_SpritePosition]);
+	if (m_SpritePosition == m_pTextures.size() - 1)
+		m_SpritePosition = 0;
+	else
+		m_SpritePosition++;
+
 	m_pImmediateContext->VSSetShader(m_pVertexShader, 0, 0);
 	m_pImmediateContext->PSSetShader(m_pPixelShader, 0, 0);
 	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
-
+	
 	UINT stride = sizeof(POS_TEX_VERTEXX);
 	UINT offset = 0;
 	m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//// turn off Z buffer so image is always on top
-	m_pImmediateContext->OMSetDepthStencilState(pDepthDisabledStencilState, 1);
+	m_pImmediateContext->OMSetDepthStencilState(m_pDepthDisabledStencilState, 1);
 
 
 	m_pImmediateContext->Draw(6, 0);
 
 	// turn on Z buffer so other rendering can use it
-	m_pImmediateContext->OMSetDepthStencilState(pDepthEnabledStencilState, 1);
+	m_pImmediateContext->OMSetDepthStencilState(m_pDepthEnabledStencilState, 1);
 }

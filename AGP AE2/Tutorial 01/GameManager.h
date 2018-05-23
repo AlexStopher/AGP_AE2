@@ -17,6 +17,7 @@
 #include "MenuSystem.h"
 #include "Math.h"
 #include <XInput.h>
+#include <mutex>
 
 #include "Sprite.h"
 
@@ -34,7 +35,10 @@ enum GameState
 	eMainMenu,
 	eInGame,
 	ePauseMenu,
+	eLoading,
 	eEndGame
+
+	
 };
 
 //Main class that manages the game 
@@ -44,16 +48,24 @@ class GameManager
 private:
 
 	thread Thread1;
+	thread Thread2;
 
+	mutex M;
+	
 //instances of the windows handles and windows, used for initialization
 	HINSTANCE				m_hInst;
 	HWND					m_hWnd;
+
+	//Temporary loading screen datatypes - to replace once the sprite works
+	bool	m_LevelLoaded, m_LevelInitialised;
+	int		m_LoadingScreenDots;
 
 	int		m_Score;
 
 	//UI Elements (Build a class for later)
 	Text2D* m_p2DText;
 	Sprite*	m_pUISprite;
+	Sprite*	m_pLoadingScreenIcon;
 
 	//Cameras
 	Camera* m_pCamera;
@@ -220,12 +232,7 @@ private:
 	
 
 	//Future cleanup
-	//vector<SceneNode*>	m_pBackWallSceneNode;
-
-	
-
-
-
+	//vector<SceneNode*>	m_pBackWallSceneNodes;
 
 
 	SceneNode* m_pObstacle1Node;
@@ -270,27 +277,33 @@ public:
 	GameState m_eGameState;
 
 	MenuSystem* m_pMenu;
+	
+	//Move to player class later
 	Input*		m_pPlayerInput;
+	float		m_PlayerMoveSpeed = 0.002f;
 
 	GameManager();
 	~GameManager();
+	void ShutdownD3D(); //cleanup function
 
-	void CreateLevel();
+	//
+	void SetupLevelDatatypes(); //Initialises object pointers
+	void CreateLevel(); //Sets the level data into scene nodes
 
 	HRESULT InitaliseWindow(HINSTANCE hInstance, int nCmdShow); //creates a window and initialize values
-	HRESULT InitialiseD3D(); //initialize direct x
-	HRESULT InitialiseGraphics(); //set up the scene and related items
+	HRESULT InitialiseD3D(); //Initialize direct x
+	HRESULT InitialiseGraphics(); //Set up the scene and related items
 	void RenderFrame(); //Render the scene
 
-	void ShutdownD3D(); //cleanup function
+	
 
 	HINSTANCE GetHInstance();
 	HWND GetHWnd();
 
 	void GameLogic(); //Game logic loop
-	void MainMenu();//main menu loop
-	void PauseMenu();//pause menu loop
-
+	void MainMenu(); //Main menu loop
+	void PauseMenu(); //Pause menu loop
+	void LoadingScreen(); //Loading Screen with animation
 	
 
 };

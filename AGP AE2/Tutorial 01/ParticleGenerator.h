@@ -17,7 +17,7 @@ struct MODEL_CONSTANT_BUFFER
 {
 	XMMATRIX WorldViewProjection; // 64 bytes
 	XMMATRIX WorldView;
-	XMVECTOR AmbientLightColour = { 0.1f, 0.1f, 0.1f, 0.1f }; // 16
+	XMVECTOR AmbientLightColour = { 0.2f, 0.2f, 0.2f, 0.2f }; // 16
 	XMVECTOR DirectionalLightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
 	XMVECTOR DirectionalLightVector;
 	XMVECTOR PointLightPosition;
